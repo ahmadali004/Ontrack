@@ -1,0 +1,42 @@
+﻿@model IEnumerable<Ontrack.Models.Class>
+
+@{
+    ViewData["Title"] = "Classes Index";
+}
+
+<h1>Classes</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+@using (Html.BeginForm("Index", "Classes", FormMethod.Get))
+{
+    <div class="form-group">
+        <label for="searchString">Search:</label>
+        <input type="text" class="form-control" id="searchString" name="searchString" value="@ViewData["CurrentFilter"]" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.ClassName)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cls in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => cls.ClassName)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@cls.ClassID" class="btn btn-info">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@cls.ClassID" class="btn btn-info">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@cls.ClassID" class="btn btn-info">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

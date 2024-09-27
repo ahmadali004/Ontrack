@@ -1,0 +1,17 @@
+﻿@model IEnumerable<Ontrack.Models.ClassTeacher>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Class Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var classTeacher in Model)
+        {
+            <tr>
+                <td>@classTeacher.Class.ClassName</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Ontrack.Models.Student>
+
+@{
+    ViewData["Title"] = "Students Index";
+}
+
+<h1>Students</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+@using (Html.BeginForm("Index", "Students", FormMethod.Get))
+{
+    <div class="form-group">
+        <label for="searchString">Search:</label>
+        <input type="text" class="form-control" id="searchString" name="searchString" value="@ViewData["CurrentFilter"]" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.FirstName)</th>
+            <th>@Html.DisplayNameFor(model => model.LastName)</th>
+            <th>@Html.DisplayNameFor(model => model.DOB)</th>
+            <th>@Html.DisplayNameFor(model => model.Class.ClassName)</th>
+            <th>@Html.DisplayNameFor(model => model.Parent.FirstName)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => student.FirstName)</td>
+                <td>@Html.DisplayFor(modelItem => student.LastName)</td>
+                <td>@Html.DisplayFor(modelItem => student.DOB)</td>
+                <td>@Html.DisplayFor(modelItem => student.Class.ClassName)</td>
+                <td>@Html.DisplayFor(modelItem => student.Parent.FirstName)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-info">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-info">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-info">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

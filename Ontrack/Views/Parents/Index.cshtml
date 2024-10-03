@@ -4,12 +4,12 @@
     ViewData["Title"] = "Parents";
     var currentFilter = ViewData["CurrentFilter"] as string;
     var selectedParentID = ViewData["SelectedParentID"] as int?;
+    var childrenList = ViewData["ChildrenList"] as IEnumerable<Ontrack.Models.Student>;
 }
 
 <h1>Parents</h1>
 
-<!-- Search Form -->
-@using (Html.BeginForm("Index", "Parents", FormMethod.Get))
+@using (Html.BeginForm("LoadChildren", "Parents", FormMethod.Get))
 {
     <div class="form-group">
         <label for="searchString">Search:</label>
@@ -39,31 +39,55 @@
                 <td>@parent.PhoneNumber</td>
                 <td>@parent.Email</td>
                 <td>
-                    <!-- Edit Button -->
                     <a asp-action="Edit" asp-route-id="@parent.ParentID" class="btn btn-info">Edit</a> |
-
-                    <!-- Details Button -->
                     <a asp-action="Details" asp-route-id="@parent.ParentID" class="btn btn-info">Details</a> |
-
-                    <!-- Delete Button -->
                     <a asp-action="Delete" asp-route-id="@parent.ParentID" class="btn btn-info">Delete</a> |
 
                     <!-- Show Children Button -->
-                    <form method="post" asp-action="ShowChildren" style="display:inline;">
+                    <form method="post" asp-action="LoadChildren" style="display:inline;">
                         <input type="hidden" name="ParentID" value="@parent.ParentID" />
                         <button type="submit" class="btn btn-info">Show Children</button>
                     </form>
                 </td>
             </tr>
+
             @if (selectedParentID != null && selectedParentID == parent.ParentID)
             {
+                <!-- Display children if the parent is selected -->
                 <tr>
                     <td colspan="4">
-                        @await Html.PartialAsync("_ChildrenList", ViewData["ChildrenList"] as IEnumerable<Ontrack.Models.Student>)
+                        <h4>Children of @parent.FirstName @parent.LastName</h4>
+                        @if (childrenList != null && childrenList.Any())
+                        {
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Date of Birth</th>
+                                        <th>Class</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in childrenList)
+                                    {
+                                        <tr>
+                                            <td>@student.FirstName</td>
+                                            <td>@student.LastName</td>
+                                            <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                            <td>@student.Class.ClassName</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p>No children found.</p>
+                        }
                     </td>
                 </tr>
             }
         }
     </tbody>
 </table>
-

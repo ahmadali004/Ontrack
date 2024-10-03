@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Ontrack.Data;
 using Ontrack.Models;
@@ -20,108 +21,65 @@ namespace Ontrack.Controllers
         }
 
         // GET: Parents
-        public async Task<IActionResult> Index(string searchString)
+        public async Task<IActionResult> Index(string searchString, int? parentID)
         {
-            ViewData["CurrentFilter"] = searchString;
+          
+            var parentsQuery = from p in _context.Parents
+                               select p;
 
-            // Query parents with their students and payments
-            var parentsQuery = _context.Parents
-                .Include(p => p.Students)
-                .Include(p => p.Payments)
-                .ThenInclude(pay => pay.Student)
-                .AsQueryable();
-
-            // Search by parent's first or last name
-            if (!String.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(searchString))
             {
-                parentsQuery = parentsQuery
-                    .Where(p => p.FirstName.Contains(searchString) || p.LastName.Contains(searchString));
+                parentsQuery = parentsQuery.Where(p => p.FirstName.Contains(searchString) || p.LastName.Contains(searchString));
             }
 
-            var parentsWithPayments = await parentsQuery.ToListAsync();
+            var parents = await parentsQuery.ToListAsync();
 
-            // Prepare the view model list
-            var viewModelList = new List<ParentWithStudentsViewModel>();
-
-            foreach (var parent in parentsWithPayments)
+          
+            List<Student> childrenList = new List<Student>();
+            if (parentID.HasValue)
             {
-                var children = parent.Payments.Select(p => p.Student).ToList();
+                var selectedParent = await _context.Parents
+                                        .Include(p => p.Students)
+                                        .ThenInclude(s => s.Class)
+                                        .FirstOrDefaultAsync(p => p.ParentID == parentID);
 
-                if (children.Count > 0)
+                if (selectedParent != null)
                 {
-                    int numberOfChildren = children.Count;
-
-                    // Set the appropriate fee based on the number of children
-                    for (int i = 0; i < numberOfChildren; i++)
-                    {
-                        decimal fee = 1700;
-                        if (i == 1 || i == 2)
-                            fee = 1500;
-                        else if (i >= 3)
-                            fee = 1300;
-
-                        var payment = parent.Payments.FirstOrDefault(p => p.Student.StudentID == children[i].StudentID);
-                        if (payment != null)
-                        {
-                            payment.Amount = fee;
-                        }
-                    }
+                    childrenList = selectedParent.Students.ToList();
                 }
 
-                viewModelList.Add(new ParentWithStudentsViewModel
-                {
-                    Parent = parent,
-                    Students = parent.Students.ToList(),
-                    Payments = parent.Payments.ToList()
-                });
+
+                ViewData["SelectedParentID"] = parentID;
             }
 
-            return View(viewModelList);
+          
+            ViewData["ChildrenList"] = childrenList;
+
+            return View(parents); 
         }
 
-        // Show parents with students
-        public async Task<IActionResult> WithStudents(string searchString)
-        {
-            var parentsWithStudents = await _context.Parents
-                .Include(p => p.Students)
-                .ThenInclude(s => s.Payments)
-                .ToListAsync();
-
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                parentsWithStudents = parentsWithStudents.Where(p => p.FirstName.Contains(searchString) || p.LastName.Contains(searchString)).ToList();
-            }
-
-            return View(parentsWithStudents);
-        }
-
-        // POST: Check if all payments are made
         [HttpPost]
-        public IActionResult CheckPayments(int parentID)
+        public async Task<IActionResult> LoadChildren(int parentID)
         {
-            var parent = _context.Parents
+            var parentWithStudents = await _context.Parents
                 .Include(p => p.Students)
-                .ThenInclude(s => s.Payments)
-                .FirstOrDefault(p => p.ParentID == parentID);
+                .ThenInclude(s => s.Class)
+                .FirstOrDefaultAsync(p => p.ParentID == parentID);
 
-            if (parent == null)
+            if (parentWithStudents == null)
             {
                 return NotFound();
             }
 
-            bool allPaid = parent.Students.All(student => student.Payments.Any(payment => payment.IsPaid));
+            // Pass the list of students to the main view via ViewData or ViewModel
+            ViewData["SelectedParentID"] = parentID;
+            ViewData["ChildrenList"] = parentWithStudents.Students.ToList();
 
-            if (allPaid)
-            {
-                TempData["Message"] = $"{parent.FirstName} {parent.LastName} has paid for all children.";
-            }
-            else
-            {
-                TempData["Message"] = $"{parent.FirstName} {parent.LastName} has unpaid children.";
-            }
-
-            return RedirectToAction("WithStudents");
+            // Return to the main view
+            return RedirectToAction("Index");
         }
+
+
 
         // GET: Parents/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -148,6 +106,8 @@ namespace Ontrack.Controllers
         }
 
         // POST: Parents/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ParentID,FirstName,LastName,PhoneNumber,Email")] Parent parent)
@@ -159,29 +119,6 @@ namespace Ontrack.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(parent);
-        }
-
-        // POST: Show children for a specific parent
-        [HttpPost]
-        public async Task<IActionResult> ShowChildren(int parentID)
-        {
-            var parentWithStudents = await _context.Parents
-                .Include(p => p.Students)
-                .ThenInclude(s => s.Class)
-                .FirstOrDefaultAsync(p => p.ParentID == parentID);
-
-            if (parentWithStudents == null)
-            {
-                return NotFound();
-            }
-
-            var viewModel = new ParentWithStudentsViewModel
-            {
-                Parent = parentWithStudents,
-                Students = parentWithStudents.Students.ToList()
-            };
-
-            return View(viewModel);
         }
 
         // GET: Parents/Edit/5
@@ -201,6 +138,8 @@ namespace Ontrack.Controllers
         }
 
         // POST: Parents/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ParentID,FirstName,LastName,PhoneNumber,Email")] Parent parent)

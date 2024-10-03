@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Claims;
 
 namespace Ontrack.Models
@@ -29,7 +30,14 @@ namespace Ontrack.Models
         public ICollection<StudentExamResult> StudentExamResults { get; set; }
         public string FullName => $"{FirstName} {LastName}";
 
-      
+
+        [NotMapped]
+        public decimal TuitionAmount { get; set; }
+
+        [NotMapped]
+        public bool IsPaid { get; set; }
+
+
     }
 
 

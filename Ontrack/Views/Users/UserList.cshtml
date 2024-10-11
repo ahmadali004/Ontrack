@@ -1,0 +1,20 @@
+﻿@using Ontrack.Areas.Identity.Data
+@model IEnumerable<OntrackUser>
+
+<table>
+    <tr>
+        <th>Email</th>
+        <th>User ID</th>
+        <th>Actions</th>
+    </tr>
+    @foreach (var user in Model)
+    {
+        <tr>
+            <td>@user.Email</td>
+            <td>@user.Id</td> <!-- This is the user ID -->
+            <td>
+                <!-- Actions like assigning roles -->
+            </td>
+        </tr>
+    }
+</table>

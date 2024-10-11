@@ -69,17 +69,17 @@ namespace Ontrack.Data
 				.Property(ct => ct.ClassTeacherID)
 				.ValueGeneratedOnAdd();
 
-			modelBuilder.Entity<StudentExamResult>()
-				.ToTable("ExamResults")
+			modelBuilder.Entity<StudentExamsResult>()
+				.ToTable("StudentExamsResult")
 				.HasKey(er => er.StudentExamResultID);
-			modelBuilder.Entity<StudentExamResult>()
+			modelBuilder.Entity<StudentExamsResult>()
 				.HasOne(er => er.Student)
-				.WithMany(s => s.StudentExamResults)
+				.WithMany(s => s.StudentExamsResult)
 				.HasForeignKey(er => er.StudentID)
 				.OnDelete(DeleteBehavior.Restrict); 
-			modelBuilder.Entity<StudentExamResult>()
+			modelBuilder.Entity<StudentExamsResult>()
 				.HasOne(er => er.Examination)
-				.WithMany(e => e.StudentExamResults)
+				.WithMany(e => e.StudentExamsResult)
 				.HasForeignKey(er => er.ExaminationID)
 				.OnDelete(DeleteBehavior.Restrict); 
 			
@@ -92,8 +92,9 @@ namespace Ontrack.Data
 		public DbSet<Examination> Examinations { get; set; }
 		public DbSet<Payment> Payments { get; set; }
 		public DbSet<Parent> Parents { get; set; }
-		public DbSet<StudentExamResult> StudentExamResult { get; set; }
-		public DbSet<ClassTeacher> ClassTeachers { get; set; }
+        public DbSet<StudentExamsResult> StudentExamsResults { get; set; }
+
+        public DbSet<ClassTeacher> ClassTeachers { get; set; }
 	public DbSet<Ontrack.Models.Subject> Subject { get; set; } = default!;
 
 

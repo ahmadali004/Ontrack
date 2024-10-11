@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using Ontrack.Models;
 
 namespace Ontrack.Controllers
 {
+    [Authorize(Roles = "Admin,Teacher,Parent")]
     public class ExaminationsController : Controller
     {
         private readonly SchoolContext _context;
@@ -61,6 +63,12 @@ namespace Ontrack.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ExaminationID,ExamName,Date,Score,ClassID,SubjectID")] Examination examination)
         {
+            var classes = _context.Classes.ToList(); // Assuming _context is your DbContext
+            ViewBag.ClassID = new SelectList(classes, "ClassID", "ClassName"); // Replace "ClassName" with the actual property name for display
+
+            // Populate SubjectID dropdown
+            var subjects = _context.Subjects.ToList(); // Assuming _context is your DbContext
+            ViewBag.SubjectID = new SelectList(subjects, "SubjectID", "SubjectName"); // Replace "SubjectName" with the actual property name for display
             if (ModelState.IsValid)
             {
                 _context.Add(examination);

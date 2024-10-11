@@ -15,18 +15,18 @@ namespace Ontrack.Models
 
         [Required]
         public int StudentID { get; set; }
-        public virtual Student? Student { get; set; }
+        public Student? Student { get; set; }
 
         [Required]
         public int ParentID { get; set; }
-        public virtual Parent? Parent { get; set; }
+        public Parent Parent { get; set; }
 
-        public bool IsPaid => Amount >= TuitionAmount; // Check if the amount covers tuition
+        public bool IsPaid => Amount >= TuitionAmount; 
 
         public string StudentFullName => Student != null ? $"{Student.FirstName} {Student.LastName}" : "N/A";
         public string ParentFullName => Parent != null ? $"{Parent.FirstName} {Parent.LastName}" : "N/A";
 
-        // Logic to determine tuition based on child order
+        
         public static decimal CalculateTuition(int childOrder)
         {
             return childOrder switch

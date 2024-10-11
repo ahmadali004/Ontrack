@@ -1,93 +1,105 @@
-﻿@model IEnumerable<Ontrack.Models.Parent>
+﻿@model Ontrack.ViewModels.SelectedParentViewModel
 
-@{
-    ViewData["Title"] = "Parents";
-    var currentFilter = ViewData["CurrentFilter"] as string;
-    var selectedParentID = ViewData["SelectedParentID"] as int?;
-    var childrenList = ViewData["ChildrenList"] as IEnumerable<Ontrack.Models.Student>;
-}
+<h1 class="text-center">Parents</h1>
 
-<h1>Parents</h1>
-
-@using (Html.BeginForm("LoadChildren", "Parents", FormMethod.Get))
+@using (Html.BeginForm("LoadChildren", "Parents", FormMethod.Post))
 {
-    <div class="form-group">
-        <label for="searchString">Search:</label>
-        <input type="text" class="form-control" id="searchString" name="searchString" value="@currentFilter" />
-        <button type="submit" class="btn m-1 btn-primary">Search</button>
+    <div class="form-group row justify-content-center">
+        <label for="searchString" class="col-form-label col-auto">Search:</label>
+        <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" id="searchString" name="searchString" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
     </div>
 }
 
-<p>
-    <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
-</p>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Phone Number</th>
-            <th>Email</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var parent in Model)
-        {
-            <tr>
-                <td>@parent.FirstName @parent.LastName</td>
-                <td>@parent.PhoneNumber</td>
-                <td>@parent.Email</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@parent.ParentID" class="btn btn-info">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@parent.ParentID" class="btn btn-info">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@parent.ParentID" class="btn btn-info">Delete</a> |
 
-                    <!-- Show Children Button -->
-                    <form method="post" asp-action="LoadChildren" style="display:inline;">
-                        <input type="hidden" name="ParentID" value="@parent.ParentID" />
-                        <button type="submit" class="btn btn-info">Show Children</button>
-                    </form>
-                </td>
-            </tr>
-
-            @if (selectedParentID != null && selectedParentID == parent.ParentID)
-            {
-                <!-- Display children if the parent is selected -->
-                <tr>
-                    <td colspan="4">
-                        <h4>Children of @parent.FirstName @parent.LastName</h4>
-                        @if (childrenList != null && childrenList.Any())
+@if (Model.Parents != null && Model.Parents.Any())
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <table class="table table-bordered table-striped mx-auto">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Name</th>
+                            <th>Phone Number</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var parent in Model.Parents)
                         {
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
-                                        <th>Date of Birth</th>
-                                        <th>Class</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var student in childrenList)
-                                    {
-                                        <tr>
-                                            <td>@student.FirstName</td>
-                                            <td>@student.LastName</td>
-                                            <td>@student.DOB.ToString("yyyy-MM-dd")</td>
-                                            <td>@student.Class.ClassName</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                            <tr>
+                                <td>@parent.FirstName @parent.LastName</td>
+                                <td>@parent.PhoneNumber</td>
+                                <td>@parent.Email</td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@parent.ParentID" class="btn btn-info">Edit</a> |
+                                    <a asp-action="Details" asp-route-id="@parent.ParentID" class="btn btn-info">Details</a> |
+                                    <a asp-action="Delete" asp-route-id="@parent.ParentID" class="btn btn-info">Delete</a> |
+
+                                    <!-- Show Children Button (Posts the ParentID to load children) -->
+                                    <form method="post" asp-action="LoadChildren" style="display:inline;">
+                                        <input type="hidden" name="ParentID" value="@parent.ParentID" />
+                                        <button type="submit" class="btn btn-info">Show Children</button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Display children only if the current parent is selected -->
+                            @if (Model.Parent != null && Model.Parent.ParentID == parent.ParentID)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <h4>Children of @parent.FirstName @parent.LastName</h4>
+                                        @if (Model.Students != null && Model.Students.Any())
+                                        {
+                                            <table class="table table-bordered mx-auto">
+                                                <thead>
+                                                    <tr>
+                                                        <th>First Name</th>
+                                                        <th>Last Name</th>
+                                                        <th>Date of Birth</th>
+                                                        <th>Class</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var student in Model.Students)
+                                                    {
+                                                        <tr>
+                                                            <td>@student.FirstName</td>
+                                                            <td>@student.LastName</td>
+                                                            <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                                            <td>@student.ClassName</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
+                                        else
+                                        {
+                                            <p>No children found for this parent.</p>
+                                        }
+                                    </td>
+                                </tr>
+                            }
                         }
-                        else
-                        {
-                            <p>No children found.</p>
-                        }
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    <p class="text-center">
+        <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
+    </p>
+}
+else
+{
+    <p class="text-center">No parents found.</p>
+}

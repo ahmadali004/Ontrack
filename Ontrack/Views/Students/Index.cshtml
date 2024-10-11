@@ -4,18 +4,20 @@
     ViewData["Title"] = "Students Index";
 }
 
-<h1>Students</h1>
+<h1 class="text-center">Students</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
+
 
 @using (Html.BeginForm("Index", "Students", FormMethod.Get))
 {
-    <div class="form-group">
-        <label for="searchString">Search:</label>
-        <input type="text" class="form-control" id="searchString" name="searchString" value="@ViewData["CurrentFilter"]" />
-        <button type="submit" class="btn btn-primary">Search</button>
+    <div class="form-group row justify-content-center">
+        <label for="searchString" class="col-form-label col-auto">Search:</label>
+        <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" id="searchString" name="searchString" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
     </div>
 }
 
@@ -26,7 +28,8 @@
             <th>@Html.DisplayNameFor(model => model.LastName)</th>
             <th>@Html.DisplayNameFor(model => model.DOB)</th>
             <th>@Html.DisplayNameFor(model => model.Class.ClassName)</th>
-            <th>@Html.DisplayNameFor(model => model.Parent.FirstName)</th>
+            <th>Parent Name</th>
+            <th>Payment Status</th>
             <th></th>
         </tr>
     </thead>
@@ -38,7 +41,8 @@
                 <td>@Html.DisplayFor(modelItem => student.LastName)</td>
                 <td>@Html.DisplayFor(modelItem => student.DOB)</td>
                 <td>@Html.DisplayFor(modelItem => student.Class.ClassName)</td>
-                <td>@Html.DisplayFor(modelItem => student.Parent.FirstName)</td>
+                <td>@student.Parent?.FullName</td>
+                <td>@(student.IsPaid ? "Paid" : "Pending")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-info">Details</a> |
                     <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-info">Edit</a> |
@@ -48,3 +52,7 @@
         }
     </tbody>
 </table>
+
+<p class="text-center">
+    <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
+</p>

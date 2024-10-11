@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace Ontrack.Controllers
 {
+
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

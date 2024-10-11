@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Ontrack.Models.Class>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class Students List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container mt-4">
+        @foreach (var classItem in Model)
+        {
+            <div class="accordion" id="classAccordion">
+                <div class="card">
+                    <div class="card-header" id="headingClass_@classItem.ClassID">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseClass_@classItem.ClassID" aria-expanded="false" aria-controls="collapseClass_@classItem.ClassID">
+                                <strong>@classItem.ClassName - Show Students</strong>
+                            </button>
+                        </h2>
+                    </div>
+
+                    <div id="collapseClass_@classItem.ClassID" class="collapse" aria-labelledby="headingClass_@classItem.ClassID" data-parent="#classAccordion">
+                        <div class="card-body" style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; font-size: 14px;">
+                            <h4>Students in @classItem.ClassName</h4>
+
+                            @if (classItem.Students != null && classItem.Students.Any())
+                            {
+                                <table class="table table-sm table-bordered" style="width: 90%; margin: 0 auto;">
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Date of Birth</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in classItem.Students)
+                                        {
+                                            <tr>
+                                                <td>@student.FirstName</td>
+                                                <td>@student.LastName</td>
+                                                <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                                <td>
+                                                    <a asp-controller="Students" asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-sm btn-info">Details</a>
+                                                    <a asp-controller="Students" asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-warning">Edit</a>
+                                                    <a asp-controller="Students" asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-sm btn-danger">Delete</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p>No students found for this class.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="~/lib/popper.js/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#classAccordion .collapse').on('show.bs.collapse', function () {
+                $(this).parent().find('.btn-link').text('Hide Students');
+            }).on('hide.bs.collapse', function () {
+                $(this).parent().find('.btn-link').text('Show Students');
+            });
+        });
+    </script>
+</body>
+</html>

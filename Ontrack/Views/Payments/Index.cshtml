@@ -1,0 +1,75 @@
+﻿@model Ontrack.ViewModels.SelectedParentViewModel
+
+@if (Model.Parents != null && Model.Parents.Any())
+{<h1 class="text-center">Payments</h1> 
+    <h3>Payments for: @DateTime.Now.ToString("MMMM yyyy")</h3>
+
+    <form asp-action="ProcessPayments" method="post">
+        <div class="text-center">
+            <a asp-controller="Payments" asp-action="Transactions" class="btn btn-primary">View Transactions</a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Parent Name</th>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Payment Amount</th>
+                    <th>Select for Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var parent in Model.Parents)
+                {
+                    var parentId = parent.ParentID;
+                    <tr>
+                        <td>@parent.FirstName @parent.LastName</td>
+                        <td colspan="3"></td>
+                        <td>
+                            <input type="checkbox" id="select-parent-@parentId" onclick="toggleChildren(@parentId)" />
+                            <input type="hidden" name="parentId" value="@parentId" />
+                        </td>
+                    </tr>
+
+                    @foreach (var studentPayment in Model.Students.Where(s => s.ParentID == parentId))
+                    {
+                        <tr>
+                            <td></td>
+                            <td>@studentPayment.FirstName @studentPayment.LastName</td>
+                            <td>@studentPayment.ClassName</td>
+                            <td>
+                                <input type="text" name="studentTuition[@studentPayment.StudentID]" value="@studentPayment.PaymentAmount" class="form-control" />
+                            </td>
+
+                            <td>
+                                <input type="checkbox" class="student-checkbox parent-@parentId" name="selectedStudentIDs" value="@studentPayment.StudentID" @(studentPayment.HasPaid ? "checked" : "") />
+
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        <div class="text-center">
+        <button type="submit" class="btn btn-primary">Process Payments</button>
+        </div>
+    </form>
+}
+else
+{
+    <p>No parents with children found for payment processing.</p>
+}
+
+@section Scripts {
+    <script>
+        function toggleChildren(parentId) {
+            var parentCheckbox = document.getElementById("select-parent-" + parentId);
+            var childCheckboxes = document.querySelectorAll(".parent-" + parentId);
+
+            childCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = parentCheckbox.checked;
+            });
+        }
+    </script>
+}

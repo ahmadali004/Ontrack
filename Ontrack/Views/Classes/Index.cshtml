@@ -4,18 +4,18 @@
     ViewData["Title"] = "Classes Index";
 }
 
-<h1>Classes</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
+<h1 class="text-center">Classes</h1>
 
 @using (Html.BeginForm("Index", "Classes", FormMethod.Get))
 {
-    <div class="form-group">
-        <label for="searchString">Search:</label>
-        <input type="text" class="form-control" id="searchString" name="searchString" value="@ViewData["CurrentFilter"]" />
-        <button type="submit" class="btn btn-primary">Search</button>
+    <div class="form-group row justify-content-center">
+        <label for="searchString" class="col-form-label col-auto">Search:</label>
+        <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" id="searchString" name="searchString" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
     </div>
 }
 
@@ -31,12 +31,75 @@
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => cls.ClassName)</td>
+              
                 <td>
                     <a asp-action="Details" asp-route-id="@cls.ClassID" class="btn btn-info">Details</a> |
                     <a asp-action="Edit" asp-route-id="@cls.ClassID" class="btn btn-info">Edit</a> |
                     <a asp-action="Delete" asp-route-id="@cls.ClassID" class="btn btn-info">Delete</a>
+
+                    <button  class="btn btn-info" type="button" data-toggle="collapse" data-target="#studentsInClass-@cls.ClassID" aria-expanded="false" aria-controls="studentsInClass-@cls.ClassID">
+                        Show Students
+                    </button>
+                
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div id="studentsInClass-@cls.ClassID" class="collapse">
+                        @if (cls.Students != null && cls.Students.Any())
+                        {
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Date of Birth</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in cls.Students)
+                                    {
+                                        <tr>
+                                            <td>@student.FirstName</td>
+                                            <td>@student.LastName</td>
+                                            <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                <a asp-controller="Students" asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-sm btn-info">Details</a> |
+                                                <a asp-controller="Students" asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-sm btn-warning">Edit</a> |
+                                                <a asp-controller="Students" asp-action="Delete" asp-route-id="@student.StudentID" class="btn btn-sm btn-danger">Delete</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p>No students found for this class.</p>
+                        }
+
+                    </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<p class="text-center">
+    <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
+</p>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.collapse').on('show.bs.collapse', function () {
+            $(this).parent().find('button').text('Hide Students');
+        }).on('hide.bs.collapse', function () {
+            $(this).parent().find('button').text('Show Students');
+        });
+    });
+</script>

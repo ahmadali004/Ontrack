@@ -8,7 +8,7 @@ using Ontrack.Data;
 
 #nullable disable
 
-namespace Ontrack.Migrations
+namespace _userManager.Migrations
 {
     [DbContext(typeof(SchoolContext))]
     partial class SchoolContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace Ontrack.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -202,6 +202,7 @@ namespace Ontrack.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("StudentID");
@@ -213,7 +214,7 @@ namespace Ontrack.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("Ontrack.Models.StudentExamResult", b =>
+            modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
                 {
                     b.Property<int>("StudentExamResultID")
                         .ValueGeneratedOnAdd()
@@ -236,7 +237,7 @@ namespace Ontrack.Migrations
 
                     b.HasIndex("StudentID");
 
-                    b.ToTable("ExamResults", (string)null);
+                    b.ToTable("StudentExamsResult", (string)null);
                 });
 
             modelBuilder.Entity("Ontrack.Models.Subject", b =>
@@ -383,16 +384,16 @@ namespace Ontrack.Migrations
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Ontrack.Models.StudentExamResult", b =>
+            modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
                 {
                     b.HasOne("Ontrack.Models.Examination", "Examination")
-                        .WithMany("StudentExamResults")
+                        .WithMany("StudentExamsResult")
                         .HasForeignKey("ExaminationID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Ontrack.Models.Student", "Student")
-                        .WithMany("StudentExamResults")
+                        .WithMany("StudentExamsResult")
                         .HasForeignKey("StudentID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -424,7 +425,7 @@ namespace Ontrack.Migrations
 
             modelBuilder.Entity("Ontrack.Models.Examination", b =>
                 {
-                    b.Navigation("StudentExamResults");
+                    b.Navigation("StudentExamsResult");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Parent", b =>
@@ -440,7 +441,7 @@ namespace Ontrack.Migrations
 
                     b.Navigation("Payments");
 
-                    b.Navigation("StudentExamResults");
+                    b.Navigation("StudentExamsResult");
 
                     b.Navigation("Subjects");
                 });

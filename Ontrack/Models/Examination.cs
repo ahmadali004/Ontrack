@@ -17,8 +17,8 @@ namespace Ontrack.Models
         public int SubjectID { get; set; }
         public Subject? Subject { get; set; }
 
-        //
-        //
-        public ICollection<StudentExamResult> ? StudentExamResults { get; set; }
-    }
+		//
+		//
+		public virtual ICollection<StudentExamsResult> ? StudentExamsResult { get; set; }
+	}
 }

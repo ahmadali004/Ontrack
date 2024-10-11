@@ -15,7 +15,9 @@ namespace Ontrack.Models
         public DateTime DOB { get; set; }
         public string ? Gender { get; set; }
         public string ? Address { get; set; }
-        public string ? PhoneNumber { get; set; }
+        [Required]
+        [RegularExpression(@"^0\d{10}$", ErrorMessage = "Phone number must be exactly 11 digits and start with 0.")]
+        public string  PhoneNumber { get; set; }
 
         public int ClassID { get; set; }
         public Class ? Class { get; set; }
@@ -27,8 +29,8 @@ namespace Ontrack.Models
         public ICollection<Examination>? Examinations { get; set; }
         public ICollection<Payment>? Payments { get; set; }
 
-        public ICollection<StudentExamResult> StudentExamResults { get; set; }
-        public string FullName => $"{FirstName} {LastName}";
+		public virtual ICollection<StudentExamsResult> StudentExamsResult { get; set; }
+		public string FullName => $"{FirstName} {LastName}";
 
 
         [NotMapped]

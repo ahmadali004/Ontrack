@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ using Ontrack.Models;
 
 namespace Ontrack.Controllers
 {
+    [Authorize(Roles = "Admin,Teacher")]
+   
     public class ClassesController : Controller
     {
         private readonly SchoolContext _context;
@@ -18,13 +21,22 @@ namespace Ontrack.Controllers
         {
             _context = context;
         }
+        public async Task<IActionResult> ClassStudentList()
+        {
+            var classesWithStudents = await _context.Classes
+                .Include(c => c.Students)
+                .ToListAsync();
+
+            return View(classesWithStudents);
+        }
 
         public async Task<IActionResult> Index(string searchString)
         {
             ViewData["CurrentFilter"] = searchString;
 
-            var classes = from c in _context.Classes
-                          select c;
+            var classes = _context.Classes
+        .Include(c => c.Students) 
+        .AsQueryable();
 
             if (!String.IsNullOrEmpty(searchString))
             {

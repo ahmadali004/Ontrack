@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using Ontrack.Models;
 
 namespace Ontrack.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class StudentsController : Controller
     {
         private readonly SchoolContext _context;
@@ -61,14 +63,16 @@ namespace Ontrack.Controllers
         // GET: Students/Create
         public IActionResult Create()
         {
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassID");
-            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "ParentID");
-            return View();
+            var student = new Student
+            {
+                DOB = DateTime.Now.AddYears(-5) // Default DOB to 5 years ago
+            };
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassName");
+            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "FullName");
+            return View(student);
         }
 
         // POST: Students/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("StudentID,FirstName,LastName,DOB,Gender,PhoneNumber,ClassID,ParentID")] Student student)
@@ -79,11 +83,12 @@ namespace Ontrack.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassID", student.ClassID);
-            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "ParentID", student.ParentID);
+            
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassName", student.ClassID);
+            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "FullName", student.ParentID);
             return View(student);
-
         }
+
 
         // GET: Students/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -93,15 +98,23 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
+           
             var student = await _context.Students.FindAsync(id);
             if (student == null)
             {
                 return NotFound();
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassID", student.ClassID);
-            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "ParentID", student.ParentID);
+
+
+
+
+
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassName", student.ClassID);
+            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "FullName", student.ParentID);
+
             return View(student);
         }
+
 
         // POST: Students/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -135,8 +148,8 @@ namespace Ontrack.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassID", student.ClassID);
-            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "ParentID", student.ParentID);
+            ViewData["ClassID"] = new SelectList(_context.Classes, "ClassID", "ClassName", student.ClassID);
+            ViewData["ParentID"] = new SelectList(_context.Parents, "ParentID", "FullName", student.ParentID);
             return View(student);
         }
 

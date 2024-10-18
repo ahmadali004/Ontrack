@@ -1,0 +1,89 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Ontrack.ViewModels
+@model ExpenseViewModel
+
+<h1>Expenses Overview</h1>
+
+<form method="get">
+    <div class="form-inline">
+        <label for="month" class="mr-2">Month:</label>
+        <select id="month" name="selectedMonth" class="form-control mr-4">
+            @foreach (var month in Model.Months)
+            {
+                if (month.Value == Model.SelectedMonth.ToString())
+                {
+                    <option value="@month.Value" selected>@month.Text</option>
+                }
+                else
+                {
+                    <option value="@month.Value">@month.Text</option>
+                }
+            }
+        </select>
+
+        <label for="year" class="mr-2">Year:</label>
+        <select id="year" name="selectedYear" class="form-control mr-4">
+            @foreach (var year in Model.Years)
+            {
+                if (year.Value == Model.SelectedYear.ToString())
+                {
+                    <option value="@year.Value" selected>@year.Text</option>
+                }
+                else
+                {
+                    <option value="@year.Value">@year.Text</option>
+                }
+            }
+        </select>
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </div>
+</form>
+
+<p>Total Payments: @Model.TotalPayments</p>
+<p>Total Expenses: @Model.TotalExpenses</p>
+<p>Balance: @Model.Balance</p>
+
+<h2>Expenses</h2>
+<p class="text-right">
+    <a asp-action="Create" class="btn btn-success">Add New Expense</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var expense in Model.Expenses)
+        {
+            <tr>
+                <td>@expense.Description</td>
+                <td>@expense.Amount</td>
+                <td>@expense.Date.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Payments</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var payment in Model.Payments)
+        {
+            <tr>
+                <td>@payment.Amount</td>
+                <td>@payment.PaymentDate.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>

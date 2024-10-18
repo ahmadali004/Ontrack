@@ -1,0 +1,46 @@
+﻿@model IDictionary<string, List<Ontrack.ViewModels.AttendanceViewModel>>
+
+
+<h1 class="text-center">Attendance Records</h1>
+
+<!-- Filter by date -->
+<form method="get" asp-action="ViewAttendance">
+    <div class="form-group">
+        <label for="attendanceDate">Select Date:</label>
+        <input type="date" name="attendanceDate" id="attendanceDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary">Filter by Date</button>
+    </div>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var group in Model)
+    {
+        <h3>@group.Key</h3> <!-- Class Name -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Attendance Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in group.Value)
+                {
+                    <tr>
+                        <td>@record.StudentName</td>
+                        <td>@(record.IsPresent ? "Absent" : "Present")</td>
+                        <td>@record.Date.ToString("MMMM dd, yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <p>No attendance records found for the selected date.</p>
+}

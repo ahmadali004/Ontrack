@@ -1,47 +1,47 @@
-﻿@model IEnumerable<Ontrack.Models.StudentExamsResult>
+﻿@model Ontrack.ViewModels.ClassExaminationViewModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Exam Results";
 }
-
-<h1>Index</h1>
-
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New Result</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Score)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Student)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Examination)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Score)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Student.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Examination.ExaminationID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.StudentExamResultID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.StudentExamResultID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.StudentExamResultID">Delete</a>
-            </td>
-        </tr>
+<h2>Exam Results</h2>
+
+<form method="get">
+    <div>
+        <label for="ExamID">Select Exam:</label>
+        <select id="ExamID" name="selectedExamID" asp-for="SelectedExamID" asp-items="Model.Exams"></select>
+    </div>
+    <button type="submit">Filter</button>
+</form>
+
+@if (Model.SelectedExamID > 0)
+{
+    <h3>Results for Exam: @Model.ExamName on @Model.ExamDate.ToShortDateString()</h3>
+    <p>Class: @Model.ClassName</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Score</th>
+                <!-- Other columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Model.Students)
+            {
+                <tr>
+                    <td>@student.StudentName</td>
+                    <td>@student.Score</td>
+                    <!-- Other columns as needed -->
+                </tr>
+            }
+        </tbody>
+    </table>
 }
-    </tbody>
-</table>
+else
+{
+    <p>Please select an exam to see results.</p>
+}

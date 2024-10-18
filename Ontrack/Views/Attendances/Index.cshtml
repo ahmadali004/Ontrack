@@ -1,0 +1,56 @@
+﻿@model Ontrack.ViewModels.SelectedParentViewModel
+
+@if (Model.Parents != null && Model.Parents.Any())
+{
+    <h1 class="text-center">Attendance</h1>
+
+    <form asp-action="MarkAttendance" method="post">
+        <div class="form-group">
+            <label for="attendanceDate">Select Date:</label>
+            <input type="date" id="attendanceDate" name="attendanceDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <h3>Attendance for: @DateTime.Now.ToString("MMMM dd, yyyy")</h3>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Parent Name</th>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Absent</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var parent in Model.Parents)
+                {
+                    var parentId = parent.ParentID;
+                    <tr>
+                        <td>@parent.FirstName @parent.LastName</td>
+                        <td colspan="3"></td>
+                    </tr>
+
+                    @foreach (var student in Model.Students.Where(s => s.ParentID == parentId))
+                    {
+                        <tr>
+                            <td></td>
+                            <td>@student.FirstName @student.LastName</td>
+                            <td>@student.ClassName</td>
+                            <td>
+                                <input type="checkbox" class="student-checkbox" name="attendanceList" value="@student.StudentID" />
+                                <!-- Checkbox for marking attendance -->
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Submit Attendance</button>
+        </div>
+    </form>
+}
+else
+{
+    <p>No students found for attendance marking.</p>
+}

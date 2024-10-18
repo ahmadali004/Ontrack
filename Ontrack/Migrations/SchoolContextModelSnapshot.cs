@@ -8,7 +8,7 @@ using Ontrack.Data;
 
 #nullable disable
 
-namespace _userManager.Migrations
+namespace Ontrack.Migrations
 {
     [DbContext(typeof(SchoolContext))]
     partial class SchoolContextModelSnapshot : ModelSnapshot
@@ -21,6 +21,30 @@ namespace _userManager.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Ontrack.Models.Attendance", b =>
+                {
+                    b.Property<int>("AttendanceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StudentID")
+                        .HasColumnType("int");
+
+                    b.HasKey("AttendanceID");
+
+                    b.HasIndex("StudentID");
+
+                    b.ToTable("Attendance");
+                });
 
             modelBuilder.Entity("Ontrack.Models.Class", b =>
                 {
@@ -103,6 +127,29 @@ namespace _userManager.Migrations
                     b.HasIndex("SubjectID");
 
                     b.ToTable("Examinations", (string)null);
+                });
+
+            modelBuilder.Entity("Ontrack.Models.Expense", b =>
+                {
+                    b.Property<int>("ExpenseID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExpenseID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ExpenseID");
+
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Parent", b =>
@@ -222,16 +269,21 @@ namespace _userManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentExamResultID"));
 
+                    b.Property<int>("ClassID")
+                        .HasColumnType("int");
+
                     b.Property<int>("ExaminationID")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
 
                     b.Property<int>("StudentID")
                         .HasColumnType("int");
 
                     b.HasKey("StudentExamResultID");
+
+                    b.HasIndex("ClassID");
 
                     b.HasIndex("ExaminationID");
 
@@ -291,9 +343,23 @@ namespace _userManager.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Salary")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("TeacherID");
 
                     b.ToTable("Teachers", (string)null);
+                });
+
+            modelBuilder.Entity("Ontrack.Models.Attendance", b =>
+                {
+                    b.HasOne("Ontrack.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Class", b =>
@@ -386,6 +452,12 @@ namespace _userManager.Migrations
 
             modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
                 {
+                    b.HasOne("Ontrack.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Ontrack.Models.Examination", "Examination")
                         .WithMany("StudentExamsResult")
                         .HasForeignKey("ExaminationID")
@@ -397,6 +469,8 @@ namespace _userManager.Migrations
                         .HasForeignKey("StudentID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Class");
 
                     b.Navigation("Examination");
 

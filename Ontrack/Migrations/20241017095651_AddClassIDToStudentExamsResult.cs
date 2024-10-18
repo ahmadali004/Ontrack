@@ -6,11 +6,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Ontrack.Migrations
 {
     /// <inheritdoc />
-    public partial class AddStudentExamsResultTable : Migration
+    public partial class AddClassIDToStudentExamsResult : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Expenses",
+                columns: table => new
+                {
+                    ExpenseID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Expenses", x => x.ExpenseID);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Parents",
                 columns: table => new
@@ -36,7 +51,8 @@ namespace Ontrack.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Salary = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -118,6 +134,27 @@ namespace Ontrack.Migrations
                         principalTable: "Parents",
                         principalColumn: "ParentID",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Attendance",
+                columns: table => new
+                {
+                    AttendanceID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StudentID = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsPresent = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Attendance", x => x.AttendanceID);
+                    table.ForeignKey(
+                        name: "FK_Attendance_Students_StudentID",
+                        column: x => x.StudentID,
+                        principalTable: "Students",
+                        principalColumn: "StudentID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,31 +248,43 @@ namespace Ontrack.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ExamResults",
+                name: "StudentExamsResult",
                 columns: table => new
                 {
                     StudentExamResultID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Score = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
                     StudentID = table.Column<int>(type: "int", nullable: false),
-                    ExaminationID = table.Column<int>(type: "int", nullable: false)
+                    ExaminationID = table.Column<int>(type: "int", nullable: false),
+                    ClassID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExamResults", x => x.StudentExamResultID);
+                    table.PrimaryKey("PK_StudentExamsResult", x => x.StudentExamResultID);
                     table.ForeignKey(
-                        name: "FK_ExamResults_Examinations_ExaminationID",
+                        name: "FK_StudentExamsResult_Classes_ClassID",
+                        column: x => x.ClassID,
+                        principalTable: "Classes",
+                        principalColumn: "ClassID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudentExamsResult_Examinations_ExaminationID",
                         column: x => x.ExaminationID,
                         principalTable: "Examinations",
                         principalColumn: "ExaminationID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ExamResults_Students_StudentID",
+                        name: "FK_StudentExamsResult_Students_StudentID",
                         column: x => x.StudentID,
                         principalTable: "Students",
                         principalColumn: "StudentID",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Attendance_StudentID",
+                table: "Attendance",
+                column: "StudentID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Classes_TeacherID",
@@ -268,16 +317,6 @@ namespace Ontrack.Migrations
                 column: "SubjectID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExamResults_ExaminationID",
-                table: "ExamResults",
-                column: "ExaminationID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ExamResults_StudentID",
-                table: "ExamResults",
-                column: "StudentID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payments_ParentID",
                 table: "Payments",
                 column: "ParentID");
@@ -285,6 +324,21 @@ namespace Ontrack.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_StudentID",
                 table: "Payments",
+                column: "StudentID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentExamsResult_ClassID",
+                table: "StudentExamsResult",
+                column: "ClassID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentExamsResult_ExaminationID",
+                table: "StudentExamsResult",
+                column: "ExaminationID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentExamsResult_StudentID",
+                table: "StudentExamsResult",
                 column: "StudentID");
 
             migrationBuilder.CreateIndex(
@@ -312,13 +366,19 @@ namespace Ontrack.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Attendance");
+
+            migrationBuilder.DropTable(
                 name: "ClassTeachers");
 
             migrationBuilder.DropTable(
-                name: "ExamResults");
+                name: "Expenses");
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "StudentExamsResult");
 
             migrationBuilder.DropTable(
                 name: "Examinations");

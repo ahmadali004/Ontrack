@@ -93,9 +93,12 @@ namespace Ontrack.Data
 		public DbSet<Payment> Payments { get; set; }
 		public DbSet<Parent> Parents { get; set; }
         public DbSet<StudentExamsResult> StudentExamsResults { get; set; }
+        public DbSet<Expense> Expenses { get; set; }
+    
 
         public DbSet<ClassTeacher> ClassTeachers { get; set; }
 	public DbSet<Ontrack.Models.Subject> Subject { get; set; } = default!;
+	    public DbSet<Ontrack.Models.Attendance> Attendance { get; set; } = default!;
 
 
 

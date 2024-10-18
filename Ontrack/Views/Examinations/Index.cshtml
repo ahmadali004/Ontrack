@@ -1,59 +1,41 @@
 ﻿@model IEnumerable<Ontrack.Models.Examination>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Examinations List";
 }
 
-<h1>Index</h1>
+<h1>Examinations List</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New Examination</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ExamName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Score)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Class)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
+            <th>Exam Name</th>
+            <th>Date</th>
+            <th>Score</th>
+            <th>Class</th>
+            <th>Subject</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExamName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Score)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Class.ClassID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.SubjectID)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ExaminationID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ExaminationID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ExaminationID">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ExamName</td>
+                <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                <td>@item.Score</td>
+                <td>@item.Class.ClassName</td>
+                <td>@item.Subject.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ExaminationID" class="btn btn-secondary">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ExaminationID" class="btn btn-info">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ExaminationID" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

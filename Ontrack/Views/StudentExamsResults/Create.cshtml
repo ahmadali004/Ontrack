@@ -1,41 +1,64 @@
-﻿@model Ontrack.Models.StudentExamsResult
+﻿@model Ontrack.ViewModels.ClassExaminationViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Enter Exam Results";
 }
 
-<h1>Create</h1>
+<h1>Enter Exam Results</h1>
 
-<h4>StudentExamsResult</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Score" class="control-label"></label>
-                <input asp-for="Score" class="form-control" />
-                <span asp-validation-for="Score" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StudentID" class="control-label"></label>
-                <select asp-for="StudentID" class ="form-control" asp-items="ViewBag.StudentID"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="ExaminationID" class="control-label"></label>
-                <select asp-for="ExaminationID" class ="form-control" asp-items="ViewBag.ExaminationID"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="SaveResults">
+    <div class="form-group">
+        <label asp-for="SelectedExamID" class="control-label"></label>
+        <select asp-for="SelectedExamID" class="form-control" asp-items="Model.Exams"></select>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div id="classList">
+        @foreach (var cls in Model.Classes)
+        {
+            <h3>@cls.ClassName</h3>
+            <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#class-@cls.ClassID" aria-expanded="false">
+                Show Students
+            </button>
+            <div id="class-@cls.ClassID" class="collapse">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in cls.Students)
+                        {
+                            <tr>
+                                <td>@student.FullName</td>
+                                <td>
+                                    <input type="hidden" name="Results[@student.StudentID].StudentID" value="@student.StudentID" />
+                                    <input type="number" name="Results[@student.StudentID].Score" class="form-control" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <hr />
+        }
+    </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    <input type="submit" value="Save Results" class="btn btn-primary" />
+</form>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.collapse').on('show.bs.collapse', function () {
+            $(this).parent().find('button').text('Hide Students');
+        }).on('hide.bs.collapse', function () {
+            $(this).parent().find('button').text('Show Students');
+        });
+    });
+</script>

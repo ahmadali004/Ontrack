@@ -21,33 +21,63 @@
 				</button>
 				<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 					<ul class="navbar-nav flex-grow-1">
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Students" asp-action="Index">Students</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Parents" asp-action="Index">Parents</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">Teachers</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Subjects" asp-action="Index">Subjects</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Classes" asp-action="Index">Classes</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Examinations" asp-action="Index">Add Exams</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="StudentExamsResults" asp-action="Index">Exam Results</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Payments" asp-action="Index">Payments</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link text-dark" asp-controller="Payments1" asp-action="Index">Transactions</a>
-						</li>
+						@if (User.IsInRole("Admin"))
+						{
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Students" asp-action="Index">Students</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Parents" asp-action="Index">Parents</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">Teachers</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Subjects" asp-action="Index">Subjects</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Classes" asp-action="Index">Classes</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Examinations" asp-action="Index">Add Exams</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="StudentExamsResults" asp-action="Index">Exam Results</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Payments" asp-action="Index">Payments</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Payments1" asp-action="Index">Transactions</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Expenses" asp-action="Index">Expenses</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Attendances" asp-action="Index">Attendance</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Attendances" asp-action="ViewAttendance">View Attendance</a>
+						</li>}
+						@if (User.IsInRole("Teacher"))
+						{
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Classes" asp-action="Index">Classes</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="Examinations" asp-action="Index">Add Exams</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-controller="StudentExamsResults" asp-action="Index">Exam Results</a>
+							</li>}
+							@if (User.IsInRole("Parent"))
+							{
+							
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-controller="StudentExamsResults" asp-action="Index">Exam Results</a>
+								</li>
+						}
+
 					</ul>
 					<ul class="navbar-nav">
 						@if (User.Identity.IsAuthenticated)

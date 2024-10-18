@@ -12,18 +12,42 @@ using Ontrack.Data;
 namespace Ontrack.Migrations
 {
     [DbContext(typeof(SchoolContext))]
-    [Migration("20241008145501_AddStudentExamsResultTable")]
-    partial class AddStudentExamsResultTable
+    [Migration("20241017095651_AddClassIDToStudentExamsResult")]
+    partial class AddClassIDToStudentExamsResult
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Ontrack.Models.Attendance", b =>
+                {
+                    b.Property<int>("AttendanceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttendanceID"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StudentID")
+                        .HasColumnType("int");
+
+                    b.HasKey("AttendanceID");
+
+                    b.HasIndex("StudentID");
+
+                    b.ToTable("Attendance");
+                });
 
             modelBuilder.Entity("Ontrack.Models.Class", b =>
                 {
@@ -106,6 +130,29 @@ namespace Ontrack.Migrations
                     b.HasIndex("SubjectID");
 
                     b.ToTable("Examinations", (string)null);
+                });
+
+            modelBuilder.Entity("Ontrack.Models.Expense", b =>
+                {
+                    b.Property<int>("ExpenseID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExpenseID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ExpenseID");
+
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Parent", b =>
@@ -225,22 +272,27 @@ namespace Ontrack.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentExamResultID"));
 
+                    b.Property<int>("ClassID")
+                        .HasColumnType("int");
+
                     b.Property<int>("ExaminationID")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
 
                     b.Property<int>("StudentID")
                         .HasColumnType("int");
 
                     b.HasKey("StudentExamResultID");
 
+                    b.HasIndex("ClassID");
+
                     b.HasIndex("ExaminationID");
 
                     b.HasIndex("StudentID");
 
-                    b.ToTable("ExamResults", (string)null);
+                    b.ToTable("StudentExamsResult", (string)null);
                 });
 
             modelBuilder.Entity("Ontrack.Models.Subject", b =>
@@ -294,9 +346,23 @@ namespace Ontrack.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Salary")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("TeacherID");
 
                     b.ToTable("Teachers", (string)null);
+                });
+
+            modelBuilder.Entity("Ontrack.Models.Attendance", b =>
+                {
+                    b.HasOne("Ontrack.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Class", b =>
@@ -389,17 +455,25 @@ namespace Ontrack.Migrations
 
             modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
                 {
+                    b.HasOne("Ontrack.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Ontrack.Models.Examination", "Examination")
-                        .WithMany("StudentExamResults")
+                        .WithMany("StudentExamsResult")
                         .HasForeignKey("ExaminationID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Ontrack.Models.Student", "Student")
-                        .WithMany("StudentExamResults")
+                        .WithMany("StudentExamsResult")
                         .HasForeignKey("StudentID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Class");
 
                     b.Navigation("Examination");
 
@@ -428,7 +502,7 @@ namespace Ontrack.Migrations
 
             modelBuilder.Entity("Ontrack.Models.Examination", b =>
                 {
-                    b.Navigation("StudentExamResults");
+                    b.Navigation("StudentExamsResult");
                 });
 
             modelBuilder.Entity("Ontrack.Models.Parent", b =>
@@ -444,7 +518,7 @@ namespace Ontrack.Migrations
 
                     b.Navigation("Payments");
 
-                    b.Navigation("StudentExamResults");
+                    b.Navigation("StudentExamsResult");
 
                     b.Navigation("Subjects");
                 });

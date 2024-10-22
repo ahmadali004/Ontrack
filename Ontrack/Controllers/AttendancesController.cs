@@ -80,8 +80,14 @@ namespace Ontrack.Controllers
                 })
                 .ToList();
 
-            return View(attendanceRecords);
+            // Group the records by ClassName
+            var groupedAttendance = attendanceRecords
+                .GroupBy(a => a.ClassName)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            return View(groupedAttendance); // Pass the dictionary to the view
         }
+
 
         [HttpPost]
         public IActionResult ProcessAttendance(Dictionary<int, bool> attendance)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -21,11 +22,27 @@ namespace Ontrack.Controllers
         {
             _context = context;
         }
+        //public IActionResult Index()
+        //{
+        //    var viewModel = new SelectedParentViewModel
+        //    {
+        //        Months = GetMonthsSelectList(),
+        //        Years = GetYearsSelectList(),
+        //        Parents = _context.Parents
+        //            .Include(p => p.Students) // Make sure Students are included
+        //            .ToList(),
+        //        SelectedMonth = DateTime.Now.Month,
+        //        SelectedYear = DateTime.Now.Year
+        //    };
 
-        public async Task<IActionResult> Index()
+        //    return View(viewModel);
+        //}
+
+        public async Task<IActionResult> Index(int? selectedMonth, int? selectedYear)
         {
-            var currentMonth = DateTime.Now.Month;
-            var currentYear = DateTime.Now.Year;
+            // Default to the current month and year if not provided
+            var currentMonth = selectedMonth ?? DateTime.Now.Month;
+            var currentYear = selectedYear ?? DateTime.Now.Year;
 
             var parents = await _context.Parents
                 .Include(p => p.Students)
@@ -35,8 +52,14 @@ namespace Ontrack.Controllers
             var viewModel = new SelectedParentViewModel
             {
                 Parents = parents,
-                Students = new List<StudentPaymentViewModel>()
+                Students = new List<StudentPaymentViewModel>(),
+                SelectedMonth = currentMonth,
+                SelectedYear = currentYear,
+                Months = new SelectList(Enumerable.Range(1, 12).Select(m => new { Value = m, Text = new DateTime(1, m, 1).ToString("MMMM") }), "Value", "Text", currentMonth),
+                Years = new SelectList(Enumerable.Range(2020, DateTime.Now.Year - 2020 + 1), currentYear)
             };
+
+            // Populate students in the viewModel as in your original code...
 
             foreach (var parent in parents)
             {
@@ -69,9 +92,10 @@ namespace Ontrack.Controllers
                     childIndex++;
                 }
             }
-
             return View(viewModel);
         }
+
+
 
 
 
@@ -114,77 +138,42 @@ namespace Ontrack.Controllers
             return View("Index", viewModel);
         }
 
-        [HttpPost]
+    
 
-        public async Task<IActionResult> ProcessPayments(int parentId, List<int> selectedStudentIDs, Dictionary<int, decimal> studentTuition)
+        [HttpPost]
+        public async Task<IActionResult> ProcessPayments(int parentId, List<int> selectedStudentIDs, Dictionary<int, decimal> studentTuition, int selectedMonth, int selectedYear)
         {
             if (selectedStudentIDs == null || !selectedStudentIDs.Any())
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { selectedMonth, selectedYear });
             }
-
-            var currentMonth = DateTime.Now.Month;  
 
             foreach (var studentID in selectedStudentIDs)
             {
                 var student = await _context.Students.FindAsync(studentID);
                 if (student != null)
                 {
-                    var hasPaidForCurrentMonth = _context.Payments
-                        .Any(p => p.StudentID == studentID && p.PaymentDate.Month == currentMonth);
+                    bool hasPaid = _context.Payments.Any(p => p.StudentID == studentID && p.PaymentDate.Month == selectedMonth && p.PaymentDate.Year == selectedYear);
 
-                    if (!hasPaidForCurrentMonth)
+                    if (!hasPaid && studentTuition.TryGetValue(studentID, out var paymentAmount))
                     {
-                        
-                        decimal paymentAmount;
-                        if (studentTuition.TryGetValue(studentID, out paymentAmount))
+                        var payment = new Payment
                         {
-                            
-                            Console.WriteLine($"Processing payment for StudentID: {studentID}, Amount: {paymentAmount}");
-
-                            var payment = new Payment
-                            {
-                                StudentID = studentID,
-                                ParentID = parentId,
-                                Amount = paymentAmount, 
-                                PaymentDate = DateTime.Now,
-                                PaymentStatus = "Confirmed"
-                            };
-
-                            _context.Payments.Add(payment);
-                        }
-                        else
-                        {
-                           
-                            Console.WriteLine($"No tuition value found for StudentID: {studentID}");
-                        }
-                    }
-                    else
-                    {
-                        
-                        Console.WriteLine($"StudentID: {studentID} has already paid for the current month.");
+                            StudentID = studentID,
+                            ParentID = parentId,
+                            Amount = paymentAmount,
+                            PaymentDate = new DateTime(selectedYear, selectedMonth, 1),
+                            PaymentStatus = "Confirmed"
+                        };
+                        _context.Payments.Add(payment);
                     }
                 }
-                else
-                {
-                    
-                    Console.WriteLine($"StudentID: {studentID} not found in the database.");
-                }
             }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-                Console.WriteLine("Payments saved successfully.");
-            }
-            catch (Exception ex)
-            {
-                
-                Console.WriteLine($"Error saving payments: {ex.Message}");
-            }
-
-            return RedirectToAction(nameof(Index));
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index), new { selectedMonth, selectedYear });
         }
+
 
 
 
@@ -342,7 +331,30 @@ namespace Ontrack.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        private SelectList GetMonthsSelectList()
+        {
+            var months = Enumerable.Range(1, 12)
+                .Select(i => new SelectListItem
+                {
+                    Value = i.ToString(),
+                    Text = DateTimeFormatInfo.CurrentInfo.GetMonthName(i)
+                }).ToList();
 
+            return new SelectList(months, "Value", "Text");
+        }
+
+        private SelectList GetYearsSelectList()
+        {
+            var currentYear = DateTime.Now.Year;
+            var years = Enumerable.Range(currentYear - 10, 20) // Shows years from 10 years ago up to 10 years ahead
+                .Select(y => new SelectListItem
+                {
+                    Value = y.ToString(),
+                    Text = y.ToString()
+                }).ToList();
+
+            return new SelectList(years, "Value", "Text");
+        }
         private bool PaymentExists(int id)
         {
             return _context.Payments.Any(e => e.PaymentID == id);

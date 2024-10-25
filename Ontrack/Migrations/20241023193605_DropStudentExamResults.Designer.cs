@@ -12,8 +12,8 @@ using Ontrack.Data;
 namespace Ontrack.Migrations
 {
     [DbContext(typeof(SchoolContext))]
-    [Migration("20241017095651_AddClassIDToStudentExamsResult")]
-    partial class AddClassIDToStudentExamsResult
+    [Migration("20241023193605_DropStudentExamResults")]
+    partial class DropStudentExamResults
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -264,37 +264,6 @@ namespace Ontrack.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
-                {
-                    b.Property<int>("StudentExamResultID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentExamResultID"));
-
-                    b.Property<int>("ClassID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExaminationID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StudentID")
-                        .HasColumnType("int");
-
-                    b.HasKey("StudentExamResultID");
-
-                    b.HasIndex("ClassID");
-
-                    b.HasIndex("ExaminationID");
-
-                    b.HasIndex("StudentID");
-
-                    b.ToTable("StudentExamsResult", (string)null);
-                });
-
             modelBuilder.Entity("Ontrack.Models.Subject", b =>
                 {
                     b.Property<int>("SubjectID")
@@ -453,33 +422,6 @@ namespace Ontrack.Migrations
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Ontrack.Models.StudentExamsResult", b =>
-                {
-                    b.HasOne("Ontrack.Models.Class", "Class")
-                        .WithMany()
-                        .HasForeignKey("ClassID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Ontrack.Models.Examination", "Examination")
-                        .WithMany("StudentExamsResult")
-                        .HasForeignKey("ExaminationID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Ontrack.Models.Student", "Student")
-                        .WithMany("StudentExamsResult")
-                        .HasForeignKey("StudentID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Class");
-
-                    b.Navigation("Examination");
-
-                    b.Navigation("Student");
-                });
-
             modelBuilder.Entity("Ontrack.Models.Subject", b =>
                 {
                     b.HasOne("Ontrack.Models.Student", null)
@@ -500,11 +442,6 @@ namespace Ontrack.Migrations
                     b.Navigation("Students");
                 });
 
-            modelBuilder.Entity("Ontrack.Models.Examination", b =>
-                {
-                    b.Navigation("StudentExamsResult");
-                });
-
             modelBuilder.Entity("Ontrack.Models.Parent", b =>
                 {
                     b.Navigation("Payments");
@@ -517,8 +454,6 @@ namespace Ontrack.Migrations
                     b.Navigation("Examinations");
 
                     b.Navigation("Payments");
-
-                    b.Navigation("StudentExamsResult");
 
                     b.Navigation("Subjects");
                 });

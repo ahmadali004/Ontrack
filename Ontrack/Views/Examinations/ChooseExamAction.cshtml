@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Ontrack.Areas.Identity.Data;
+@inject UserManager<OntrackUser> UserManager
+@{
+    var isAdmin = User.IsInRole("Admin");
+    var isTeacher = User.IsInRole("Teacher");
+    var isParent = User.IsInRole("Parent");
+}
+
+<h2>Choose Exam Action</h2>
+
+<div class="btn-group" role="group" aria-label="Exam actions">
+    <a asp-controller="StudentExamsResults" asp-action="Index" class="btn btn-info btn-lg">View Results</a>
+   
+ 
+
+    <!-- Only show the Create Exam button if the user is an Admin or Teacher -->
+    @if (isAdmin || isTeacher)
+    {
+        <a asp-controller="Examinations" asp-action="Create" class="btn btn-primary">
+            Create Exam
+        </a>
+         <a asp-controller="Examinations" asp-action="Index" class="btn btn-secondary">
+            View Exam
+        </a>
+    }
+</div>

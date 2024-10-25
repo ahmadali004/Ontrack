@@ -1,15 +1,31 @@
 ﻿@model Ontrack.ViewModels.SelectedParentViewModel
 
 @if (Model.Parents != null && Model.Parents.Any())
-{<h1 class="text-center">Payments</h1> 
+{
+    <h1 class="text-center">Payments</h1>
     <h3>Payments for: @DateTime.Now.ToString("MMMM yyyy")</h3>
 
     <form asp-action="ProcessPayments" method="post">
-        <div class="text-center">
+        @Html.AntiForgeryToken()
+
+        <!-- Dropdown Filters -->
+        <div class="form-group">
+            <label for="SelectedMonth">Month:</label>
+            <select asp-for="SelectedMonth" asp-items="Model.Months" class="form-control"></select>
+        </div>
+        <div class="form-group">
+            <label for="SelectedYear">Year:</label>
+            <select asp-for="SelectedYear" asp-items="Model.Years" class="form-control"></select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+
+        <div class="text-center mt-3">
             <a asp-controller="Payments" asp-action="Transactions" class="btn btn-primary">View Transactions</a>
         </div>
 
-        <table class="table">
+        <!-- Payment Table -->
+        <table class="table mt-3">
             <thead>
                 <tr>
                     <th>Parent Name</th>
@@ -41,18 +57,17 @@
                             <td>
                                 <input type="text" name="studentTuition[@studentPayment.StudentID]" value="@studentPayment.PaymentAmount" class="form-control" />
                             </td>
-
                             <td>
-                                <input type="checkbox" class="student-checkbox parent-@parentId" name="selectedStudentIDs" value="@studentPayment.StudentID" @(studentPayment.HasPaid ? "checked" : "") />
-
+                                <input type="checkbox" class="student-checkbox parent-@parentId" name="selectedStudentIDs" value="@studentPayment.StudentID" @(studentPayment.HasPaid ? "checked disabled" : "") />
                             </td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
-        <div class="text-center">
-        <button type="submit" class="btn btn-primary">Process Payments</button>
+
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">Process Payments</button>
         </div>
     </form>
 }

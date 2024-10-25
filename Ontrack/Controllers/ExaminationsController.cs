@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Ontrack.Areas.Identity.Data;
 using Ontrack.Data;
 using Ontrack.Models;
 
@@ -8,15 +11,18 @@ namespace Ontrack.Controllers
 {
     public class ExaminationsController : Controller
     {
-        private readonly SchoolContext _context;
+		private readonly SchoolContext _context;
+		private readonly UserManager<OntrackUser> _userManager;
 
-        public ExaminationsController(SchoolContext context)
-        {
-            _context = context;
-        }
+		// Single constructor that accepts both dependencies
+		public ExaminationsController(SchoolContext context, UserManager<OntrackUser> userManager)
+		{
+			_context = context;
+			_userManager = userManager;
+		}
 
-        // GET: Examinations
-        public async Task<IActionResult> Index()
+		// GET: Examinations
+		public async Task<IActionResult> Index()
         {
             var examinations = await _context.Examinations
                 .Include(e => e.Class)
@@ -32,10 +38,27 @@ namespace Ontrack.Controllers
             ViewData["SubjectID"] = new SelectList(_context.Subjects, "SubjectID", "Name");
             return View();
         }
+		[HttpGet]
+		public async Task<IActionResult> ChooseExamAction()
+		{
+			var user = await _userManager.GetUserAsync(User);
+			var isTeacherOrAdmin = await _userManager.IsInRoleAsync(user, "Teacher") || await _userManager.IsInRoleAsync(user, "Admin");
+			if (isTeacherOrAdmin)
+			{
+				// Show options for teachers or admins
+				return View("ChooseExamAction");
+			}
+			else
+			{
+				// Redirect parents or other users to view-only exam results
+				return RedirectToAction("ViewExams", "Examinations");
+			}
+		}
 
-        // POST: Examinations/Create
-        [HttpPost]
+		// POST: Examinations/Create
+		[HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Teacher")]
         public async Task<IActionResult> Create([Bind("ExaminationID,ExamName,Date,Score,ClassID,SubjectID")] Examination examination)
         {
             if (ModelState.IsValid)

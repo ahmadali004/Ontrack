@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ using Ontrack.ViewModels;
 
 namespace Ontrack.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class ParentsController : Controller
     {
         private readonly SchoolContext _context;
@@ -20,33 +21,100 @@ namespace Ontrack.Controllers
         {
             _context = context;
         }
+		// GET: Parents/StudentDetails/{studentId}
+		// GET: Parents/StudentDetails
+		[HttpGet("Parents/StudentDetails")]
+		public async Task<IActionResult> StudentDetails()
+		{
+			if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
+			{
+				return RedirectToAction("Login", "Account");
+			}
 
-        // GET: Parents
-        public async Task<IActionResult> Index()
-        {
-            var parents = await _context.Parents
-                .Include(p => p.Students)
-                .ToListAsync();
+			// Get the user ID of the logged-in parent
+			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var viewModel = new SelectedParentViewModel
-            {
-                Parents = parents,
-                Students = parents.SelectMany(p => p.Students)
-                    .Select(s => new StudentPaymentViewModel
-                    {
-                        StudentID = s.StudentID,
-                        FirstName = s.FirstName,
-                        LastName = s.LastName,
-                        ClassName = s.Class?.ClassName ?? "N/A",
-                        PaymentAmount = CalculatePaymentAmountForStudent(s)
-                    }).ToList()
-            };
+			// Get the parent associated with the logged-in user
+			var parent = await _context.Parents
+				.Include(p => p.Students)
+				.ThenInclude(s => s.Class)
+				.FirstOrDefaultAsync(p => p.UserId == userId);
 
-            return View(viewModel);  // Return SelectedParentViewModel
-        }
+			if (parent == null)
+			{
+				return NotFound("Parent not found.");
+			}
 
-        // Calculate payment amount based on sibling count
-        private decimal CalculatePaymentAmountForStudent(Student student)
+			var viewModel = new StudentDetailsViewModel
+			{
+				ParentFullName = $"{parent.FirstName} {parent.LastName}",
+				Students = parent.Students.Select(s => new StudentDetailViewModel
+				{
+					StudentID = s.StudentID,
+					FullName = $"{s.FirstName} {s.LastName}",
+					ClassName = s.Class?.ClassName,
+					AttendanceRecords = _context.Attendance
+						.Where(a => a.StudentID == s.StudentID && a.Date.Month == DateTime.Now.Month)
+						.ToList(),
+					Payments = _context.Payments
+						.Where(p => p.StudentID == s.StudentID)
+						.ToList(),
+					//ExamResults = _context.StudentExamsResult
+					//	.Include(er => er.Examination)
+					//	.Where(er => er.StudentID == s.StudentID)
+					//	.ToList()
+				}).ToList()
+			};
+
+			return View(viewModel);
+		}
+
+
+
+
+
+
+
+		// GET: Parents
+		public async Task<IActionResult> Index()
+		{
+			if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
+			{
+				return RedirectToAction("Login", "Account");
+			}
+
+			// Get the user ID of the logged-in parent
+			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+			// Get the parent associated with the logged-in user
+			var parent = await _context.Parents
+				.Include(p => p.Students)
+				.FirstOrDefaultAsync(p => p.UserId == userId);
+
+			if (parent == null)
+			{
+				return NotFound("Parent not found.");
+			}
+
+			var viewModel = new SelectedParentViewModel
+			{
+				Parent = parent,
+				Students = parent.Students.Select(s => new StudentPaymentViewModel
+				{
+					StudentID = s.StudentID,
+					FirstName = s.FirstName,
+					LastName = s.LastName,
+					ClassName = s.Class?.ClassName ?? "N/A",
+					PaymentAmount = CalculatePaymentAmountForStudent(s)
+				}).ToList()
+			};
+
+			return View(viewModel);
+		}
+
+
+		// Calculate payment amount based on sibling count
+		private decimal CalculatePaymentAmountForStudent(Student student)
         {
             var siblingsCount = _context.Students.Count(s => s.ParentID == student.ParentID);
 
@@ -192,6 +260,7 @@ namespace Ontrack.Controllers
             return View(parent);
         }
 
+
         // GET: Parents/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -209,6 +278,7 @@ namespace Ontrack.Controllers
 
             return View(parent);
         }
+
 
         // POST: Parents/Delete/5
         [HttpPost, ActionName("Delete")]

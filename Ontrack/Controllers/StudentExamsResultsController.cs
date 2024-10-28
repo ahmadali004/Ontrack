@@ -34,7 +34,7 @@ namespace Ontrack.Controllers
 
             if (selectedExamID.HasValue)
             {
-                viewModel.Students = await _context.StudentExamsResults
+                viewModel.Students = await _context.StudentExamsResult
                     .Include(r => r.Student) // Ensure you have Student property in StudentExamsResults
                     .Where(r => r.ExaminationID == selectedExamID.Value)
                     .Select(r => new StudentExamViewModel
@@ -184,7 +184,7 @@ public async Task<IActionResult> EnterResults(int? selectedExamID)
                         Score = result.Value.Score
                     };
 
-                    _context.StudentExamsResults.Add(studentExamResult); // Save to the context
+                    _context.StudentExamsResult.Add(studentExamResult); // Save to the context
                 }
                 await _context.SaveChangesAsync(); // Save changes once outside the loop
             }
@@ -201,7 +201,7 @@ public async Task<IActionResult> EnterResults(int? selectedExamID)
         {
             if (ModelState.IsValid)
             {
-                _context.StudentExamsResults.Add(model.ExamResult);
+                _context.StudentExamsResult.Add(model.ExamResult);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -218,7 +218,7 @@ public async Task<IActionResult> EnterResults(int? selectedExamID)
         // GET: StudentExamsResults/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var studentExamsResult = await _context.StudentExamsResults.FindAsync(id);
+            var studentExamsResult = await _context.StudentExamsResult.FindAsync(id);
             if (studentExamsResult == null)
             {
                 return NotFound();
@@ -266,7 +266,7 @@ public async Task<IActionResult> EnterResults(int? selectedExamID)
         // GET: StudentExamsResults/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var studentExamsResult = await _context.StudentExamsResults
+            var studentExamsResult = await _context.StudentExamsResult
                 .Include(r => r.Student)
                 .Include(r => r.Examination)
                 .FirstOrDefaultAsync(m => m.StudentExamResultID == id);
@@ -282,15 +282,15 @@ public async Task<IActionResult> EnterResults(int? selectedExamID)
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var studentExamsResult = await _context.StudentExamsResults.FindAsync(id);
-            _context.StudentExamsResults.Remove(studentExamsResult);
+            var studentExamsResult = await _context.StudentExamsResult.FindAsync(id);
+            _context.StudentExamsResult.Remove(studentExamsResult);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool StudentExamsResultExists(int id)
         {
-            return _context.StudentExamsResults.Any(e => e.StudentExamResultID == id);
+            return _context.StudentExamsResult.Any(e => e.StudentExamResultID == id);
         }
         public IActionResult ViewAttendance(DateTime? attendanceDate)
         {

@@ -9,6 +9,10 @@ namespace Ontrack.Data
 		{ }
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.Entity<Parent>()
+		.HasOne(p => p.User)
+		.WithOne(u => u.Parent)
+		.HasForeignKey<Parent>(p => p.UserId);
 			modelBuilder.Entity<Teacher>()
 				.ToTable("Teachers")
 				.HasKey(t => t.TeacherID);
@@ -85,6 +89,7 @@ namespace Ontrack.Data
 			
 			base.OnModelCreating(modelBuilder);
 		}
+
 		public DbSet<Student> Students { get; set; }
 		public DbSet<Teacher> Teachers { get; set; }
 		public DbSet<Class> Classes { get; set; }
@@ -92,7 +97,7 @@ namespace Ontrack.Data
 		public DbSet<Examination> Examinations { get; set; }
 		public DbSet<Payment> Payments { get; set; }
 		public DbSet<Parent> Parents { get; set; }
-        public DbSet<StudentExamsResult> StudentExamsResults { get; set; }
+        public DbSet<StudentExamsResult> StudentExamsResult { get; set; }
         public DbSet<Expense> Expenses { get; set; }
     
 

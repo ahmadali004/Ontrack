@@ -20,9 +20,11 @@ namespace Ontrack.Models
         [ForeignKey("ExaminationID")]
         public virtual Examination? Examination { get; set; }
 
+
         // Foreign Key for Class
         public int? ClassID { get; set; }
         [ForeignKey("ClassID")]
         public virtual Class? Class { get; set; }
+
     }
 }

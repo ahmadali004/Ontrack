@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Ontrack.Models;
 
 namespace Ontrack.Areas.Identity.Data;
 
@@ -19,5 +20,6 @@ public class OntrackUser : IdentityUser
 
     public string ? UserType { get; set; }
 
+    public virtual Parent Parent { get; set; }
 }
 

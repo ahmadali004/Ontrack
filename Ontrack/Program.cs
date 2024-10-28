@@ -78,6 +78,32 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+//app.MapGet("/", async context =>
+//{
+//    var user = context.User;
+//    if (user.Identity.IsAuthenticated)
+//    {
+//        context.Response.Redirect("/Parents/StudentDetails");
+//    }
+//    else
+//    {
+//        context.Response.Redirect("/Account/Login"); // Redirect to login page
+//    }
+//});
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+});
+
+
+
+// Default route
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"); // Change to a general home controller/action
 
 app.MapRazorPages();
 app.MapControllerRoute(

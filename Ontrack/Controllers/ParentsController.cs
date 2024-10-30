@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Ontrack.Data;
 using Ontrack.Models;
@@ -21,53 +22,49 @@ namespace Ontrack.Controllers
         {
             _context = context;
         }
-		// GET: Parents/StudentDetails/{studentId}
-		// GET: Parents/StudentDetails
-		[HttpGet("Parents/StudentDetails")]
-		public async Task<IActionResult> StudentDetails()
-		{
-			if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
-			{
-				return RedirectToAction("Login", "Account");
-			}
+        // GET: Parents/StudentDetails/{studentId}
+        // GET: Parents/StudentDetails
+        //[HttpGet("Parents/StudentDetails")]
+        //public async Task<IActionResult> StudentDetails()
+        //{
 
-			// Get the user ID of the logged-in parent
-			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //	// Get the user ID of the logged-in parent
+        //	var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-			// Get the parent associated with the logged-in user
-			var parent = await _context.Parents
-				.Include(p => p.Students)
-				.ThenInclude(s => s.Class)
-				.FirstOrDefaultAsync(p => p.UserId == userId);
+        //	// Get the parent associated with the logged-in user
+        //	var parent = await _context.Parents
+        //		.Include(p => p.Students)
+        //		.ThenInclude(s => s.Class)
+        //		.FirstOrDefaultAsync(p => p.UserId == userId);
 
-			if (parent == null)
-			{
-				return NotFound("Parent not found.");
-			}
+        //	if (parent == null)
+        //	{
+        //		return NotFound("Parent not found.");
+        //	}
 
-			var viewModel = new StudentDetailsViewModel
-			{
-				ParentFullName = $"{parent.FirstName} {parent.LastName}",
-				Students = parent.Students.Select(s => new StudentDetailViewModel
-				{
-					StudentID = s.StudentID,
-					FullName = $"{s.FirstName} {s.LastName}",
-					ClassName = s.Class?.ClassName,
-					AttendanceRecords = _context.Attendance
-						.Where(a => a.StudentID == s.StudentID && a.Date.Month == DateTime.Now.Month)
-						.ToList(),
-					Payments = _context.Payments
-						.Where(p => p.StudentID == s.StudentID)
-						.ToList(),
-					//ExamResults = _context.StudentExamsResult
-					//	.Include(er => er.Examination)
-					//	.Where(er => er.StudentID == s.StudentID)
-					//	.ToList()
-				}).ToList()
-			};
+        //	var viewModel = new StudentDetailsViewModel
+        //	{
+        //		ParentFullName = $"{parent.FirstName} {parent.LastName}",
+        //		Students = parent.Students.Select(s => new StudentDetailViewModel
+        //		{
+        //			StudentID = s.StudentID,
+        //			FullName = $"{s.FirstName} {s.LastName}",
+        //			ClassName = s.Class?.ClassName,
+        //			AttendanceRecords = _context.Attendance
+        //				.Where(a => a.StudentID == s.StudentID && a.Date.Month == DateTime.Now.Month)
+        //				.ToList(),
+        //			Payments = _context.Payments
+        //				.Where(p => p.StudentID == s.StudentID)
+        //				.ToList(),
+        //			//ExamResults = _context.StudentExamsResult
+        //			//	.Include(er => er.Examination)
+        //			//	.Where(er => er.StudentID == s.StudentID)
+        //			//	.ToList()
+        //		}).ToList()
+        //	};
 
-			return View(viewModel);
-		}
+        //	return View(viewModel);
+        //}
 
 
 
@@ -75,8 +72,69 @@ namespace Ontrack.Controllers
 
 
 
-		// GET: Parents
-		public async Task<IActionResult> Index()
+        // GET: Parents
+
+        [HttpGet("Parents/StudentDetails")]
+        public async Task<IActionResult> StudentDetails(string selectedMonth = null, string selectedWeek = null)
+        {
+            // Get the user ID of the logged-in parent
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Get the parent associated with the logged-in user
+            var parent = await _context.Parents
+                .Include(p => p.Students)
+                .ThenInclude(s => s.Class)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (parent == null)
+            {
+                return NotFound("Parent not found.");
+            }
+
+            // Generate list of months
+            var monthOptions = Enumerable.Range(0, 12)
+                .Select(i => DateTime.Now.AddMonths(-i))
+                .Select(date => new SelectListItem
+                {
+                    Value = date.ToString("MM-yyyy"),
+                    Text = date.ToString("MMMM yyyy")
+                }).ToList();
+
+            // Apply attendance and payment filters based on selected month and week if provided
+            var attendanceRecords = _context.Attendance.AsQueryable();
+            if (!string.IsNullOrEmpty(selectedMonth))
+            {
+                var dateParts = selectedMonth.Split('-');
+                if (dateParts.Length == 2 &&
+                    int.TryParse(dateParts[0], out int month) &&
+                    int.TryParse(dateParts[1], out int year))
+                {
+                    attendanceRecords = attendanceRecords.Where(a => a.Date.Month == month && a.Date.Year == year);
+                }
+            }
+
+            var viewModel = new StudentDetailsViewModel
+            {
+                MonthOptions = monthOptions,
+                SelectedMonth = selectedMonth,  // Keep this
+                SelectedWeek = selectedWeek,
+                ParentFullName = $"{parent.FirstName} {parent.LastName}",
+                Students = parent.Students.Select(s => new StudentDetailViewModel
+                {
+                    StudentID = s.StudentID,
+                    FullName = $"{s.FirstName} {s.LastName}",
+                    ClassName = s.Class?.ClassName,
+                    AttendanceRecords = attendanceRecords.Where(a => a.StudentID == s.StudentID).ToList(),
+                    Payments = _context.Payments.Where(p => p.StudentID == s.StudentID).ToList()
+                }).ToList()
+            };
+
+
+            return View(viewModel);
+        }
+
+
+        public async Task<IActionResult> Index()
 		{
 			if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
 			{

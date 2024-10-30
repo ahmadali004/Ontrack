@@ -53,7 +53,7 @@
 
         th {
             background-color: #007bff;
-            color: white;
+            color: black;
         }
 
         .tuition-status {
@@ -76,26 +76,33 @@
             </select>
         </div>
 
-        <!-- Month and Week Filters -->
-        <div class="row mb-4">
+
+
+
+<!-- Debugging Output -->
+>
+
+
+
+<!-- Filters Form -->
+        <form method="get" asp-action="StudentDetails" class="row mb-4">
             <div class="col-md-6">
                 <label for="monthSelect" class="form-label">Select Month:</label>
-                <select id="monthSelect" class="form-select" onchange="onFilterChange()">
-                    <option value="10-2024">October 2024</option>
-                    <option value="09-2024">September 2024</option>
-                    <!-- Add more months as needed -->
+                <select id="monthSelect" name="selectedMonth" class="form-select" onchange="this.form.submit()">
+                    <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
             <div class="col-md-6">
                 <label for="weekSelect" class="form-label">Select Week:</label>
-                <select id="weekSelect" class="form-select" onchange="onFilterChange()">
-                    <option value="week1">Week 1</option>
-                    <option value="week2">Week 2</option>
-                    <option value="week3">Week 3</option>
-                    <!-- Add more weeks as needed -->
+                <select id="weekSelect" name="selectedWeek" class="form-select" onchange="this.form.submit()">
+                    <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
-        </div>
+        </form>
+
+
+
+
 
         <!-- Student Details Header -->
         <div class="header">
@@ -111,7 +118,7 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Status</th>
+                            <th>Absent</th>
                         </tr>
                     </thead>
                     <tbody id="attendanceData">
@@ -125,6 +132,12 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div>
+            @* Log the JSON serialized options *@
+            <script>
+                console.log("Month Options: ", @Html.Raw(Json.Serialize(Model.MonthOptions)));
+            </script>
         </div>
 
         <!-- Grades Section -->
@@ -183,7 +196,36 @@
             // Your logic for updating the attendance and grades can go here
         }
     </script>
+    <script>
+        const monthOptions = @Html.Raw(Json.Serialize(Model.MonthOptions));
+        const selectedMonth = "@Model.SelectedMonth";
+        const weekOptions = ["week1", "week2", "week3", "week4"];
+        const selectedWeek = "@Model.SelectedWeek";
 
+        function populateSelect(selectElement, options, selectedValue) {
+            options.forEach(option => {
+                const opt = document.createElement("option");
+                opt.value = option.value; // Use lowercase `value`
+                opt.text = option.text; // Use lowercase `text`
+                if (opt.value === selectedValue) opt.selected = true; // Set selected option
+                selectElement.appendChild(opt);
+            });
+        }
+                    }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Check if elements exist before populating
+            const monthSelect = document.getElementById("monthSelect");
+            const weekSelect = document.getElementById("weekSelect");
+
+            if (monthSelect && weekSelect) {
+                populateSelect(monthSelect, monthOptions, selectedMonth);
+                populateSelect(weekSelect, weekOptions, selectedWeek);
+            } else {
+                console.error("Dropdown elements not found.");
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

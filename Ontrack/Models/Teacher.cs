@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Ontrack.Areas.Identity.Data;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
@@ -24,6 +26,10 @@ namespace Ontrack.Models
 
                     public ICollection<Class>? Classes { get; set; }
         public string FullName => $"{FirstName} {LastName}";
+
+        [ForeignKey("User")]
+        public string UserId { get; set; }
+        public virtual OntrackUser User { get; set; }
 
     }
 

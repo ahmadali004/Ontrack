@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Ontrack.Areas.Identity.Data;
 using Ontrack.Data;
 using Ontrack.Models;
 using Ontrack.ViewModels;
@@ -17,9 +21,11 @@ namespace Ontrack.Controllers
     public class ParentsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly UserManager<OntrackUser> _userManager;
 
-        public ParentsController(SchoolContext context)
+        public ParentsController(UserManager<OntrackUser> userManager, SchoolContext context)
         {
+            _userManager = userManager;
             _context = context;
         }
         // GET: Parents/StudentDetails/{studentId}
@@ -72,66 +78,153 @@ namespace Ontrack.Controllers
 
 
 
-        // GET: Parents
-
-        [HttpGet("Parents/StudentDetails")]
-        public async Task<IActionResult> StudentDetails(string selectedMonth = null, string selectedWeek = null)
+        // In the Controller
+        public async Task<IActionResult> StudentDetails(int? selectedMonth, int? selectedYear)
         {
-            // Get the user ID of the logged-in parent
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            // Get the parent associated with the logged-in user
+            var userId = _userManager.GetUserId(User);
             var parent = await _context.Parents
                 .Include(p => p.Students)
-                .ThenInclude(s => s.Class)
+                    .ThenInclude(s => s.Attendances)
+                .Include(p => p.Students)
+                    .ThenInclude(s => s.Payments)
+                .Include(p => p.Students)
+                    .ThenInclude(s => s.StudentExamsResult)
+                        .ThenInclude(er => er.Examination)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            if (parent == null)
+            if (parent == null || !parent.Students.Any())
             {
-                return NotFound("Parent not found.");
+                return NotFound("No students found for this parent.");
             }
 
-            // Generate list of months
-            var monthOptions = Enumerable.Range(0, 12)
-                .Select(i => DateTime.Now.AddMonths(-i))
-                .Select(date => new SelectListItem
-                {
-                    Value = date.ToString("MM-yyyy"),
-                    Text = date.ToString("MMMM yyyy")
-                }).ToList();
-
-            // Apply attendance and payment filters based on selected month and week if provided
-            var attendanceRecords = _context.Attendance.AsQueryable();
-            if (!string.IsNullOrEmpty(selectedMonth))
+            var studentDetails = parent.Students.Select(s => new StudentDetailViewModel
             {
-                var dateParts = selectedMonth.Split('-');
-                if (dateParts.Length == 2 &&
-                    int.TryParse(dateParts[0], out int month) &&
-                    int.TryParse(dateParts[1], out int year))
-                {
-                    attendanceRecords = attendanceRecords.Where(a => a.Date.Month == month && a.Date.Year == year);
-                }
-            }
+                StudentID = s.StudentID,
+                FullName = s.FullName ?? "Unknown",
+                ClassName = s.Class?.ClassName ?? "No class assigned",
+                AttendanceRecords = s.Attendances?
+                    .Where(a => (!selectedMonth.HasValue || a.Date.Month == selectedMonth.Value) &&
+                                (!selectedYear.HasValue || a.Date.Year == selectedYear.Value))
+                    .ToList() ?? new List<Attendance>(),
+                Payments = s.Payments?
+                    .Where(p => (!selectedMonth.HasValue || p.PaymentDate.Month == selectedMonth.Value) &&
+                                (!selectedYear.HasValue || p.PaymentDate.Year == selectedYear.Value))
+                    .ToList() ?? new List<Payment>(),
+                ExamResults = s.StudentExamsResult?
+                    .Where(er => (!selectedMonth.HasValue || er.Examination?.Date.Month == selectedMonth.Value) &&
+                                 (!selectedYear.HasValue || er.Examination?.Date.Year == selectedYear.Value))
+                    .Select(er => new StudentExamResultViewModel
+                    {
+                        ExamName = er.Examination?.ExamName ?? "N/A",
+                        ExamDate = er.Examination?.Date.ToString("yyyy-MM-dd") ?? "N/A",
+                        Score = (int?)er.Score ?? 0
+                    })
+                    .ToList() ?? new List<StudentExamResultViewModel>()
+            }).ToList();
 
             var viewModel = new StudentDetailsViewModel
             {
-                MonthOptions = monthOptions,
-                SelectedMonth = selectedMonth,  // Keep this
-                SelectedWeek = selectedWeek,
-                ParentFullName = $"{parent.FirstName} {parent.LastName}",
-                Students = parent.Students.Select(s => new StudentDetailViewModel
-                {
-                    StudentID = s.StudentID,
-                    FullName = $"{s.FirstName} {s.LastName}",
-                    ClassName = s.Class?.ClassName,
-                    AttendanceRecords = attendanceRecords.Where(a => a.StudentID == s.StudentID).ToList(),
-                    Payments = _context.Payments.Where(p => p.StudentID == s.StudentID).ToList()
-                }).ToList()
+                ParentFullName = parent.FullName ?? "Unknown Parent",
+                Students = studentDetails,
+                MonthOptions = GetMonthOptions(),
+                SelectedMonth = selectedMonth ?? DateTime.Now.Month,
+              
             };
-
 
             return View(viewModel);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<IActionResult> GetStudentExamView(int studentId)
+        {
+            var exams = await _context.Examinations.ToListAsync(); // Fetch all exams
+
+            var viewModel = new StudentExamViewModel
+            {
+                StudentID = studentId,
+                StudentName = (await _context.Students.FindAsync(studentId))?.FullName,
+                Exams = exams.Select(e => new SelectListItem
+                {
+                    Value = e.ExaminationID.ToString(),
+                    Text = e.ExamName
+                }).ToList()
+            };
+
+            return View(viewModel); // Return view for managing student exams
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveExamScore(StudentExamViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("GetStudentExamView", model); // Return to view if model is invalid
+            }
+
+            var studentExamResult = new StudentExamsResult
+            {
+                StudentID = model.StudentID,
+                ExaminationID = model.SelectedExamID,
+                Score = model.Score
+            };
+
+            _context.StudentExamsResult.Add(studentExamResult);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("StudentDetails"); // Redirect to student details after saving
+        }
+
+        private List<SelectListItem> GetMonthOptions()
+        {
+            var months = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "January", Value = "1" },
+        new SelectListItem { Text = "February", Value = "2" },
+        new SelectListItem { Text = "March", Value = "3" },
+        new SelectListItem { Text = "April", Value = "4" },
+        new SelectListItem { Text = "May", Value = "5" },
+        new SelectListItem { Text = "June", Value = "6" },
+        new SelectListItem { Text = "July", Value = "7" },
+        new SelectListItem { Text = "August", Value = "8" },
+        new SelectListItem { Text = "September", Value = "9" },
+        new SelectListItem { Text = "October", Value = "10" },
+        new SelectListItem { Text = "November", Value = "11" },
+        new SelectListItem { Text = "December", Value = "12" }
+    };
+
+            return months;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         public async Task<IActionResult> Index()

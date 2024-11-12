@@ -8,7 +8,7 @@ namespace Ontrack.Models
     {
         [Key]
         public int StudentExamResultID { get; set; }
-        public decimal Score { get; set; }
+        public decimal? Score { get; set; }
 
         // Foreign Key for Student
         public int ?StudentID { get; set; }
@@ -26,5 +26,8 @@ namespace Ontrack.Models
         [ForeignKey("ClassID")]
         public virtual Class? Class { get; set; }
 
+
+        public string ExamName => Examination?.ExamName;
+        public DateTime? ExamDate => Examination?.Date;
     }
 }

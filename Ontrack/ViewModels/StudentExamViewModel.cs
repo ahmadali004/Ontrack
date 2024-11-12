@@ -8,7 +8,7 @@ namespace Ontrack.ViewModels
         public IEnumerable<SelectListItem> Exams { get; set; }
         public int StudentID { get; set; }
         public string StudentName { get; set; }
-        public double Score { get; set; } // Adjust based on your requirements
+        public int Score { get; set; } // Adjust based on your requirements
 
         public StudentExamViewModel()
         {

@@ -40,7 +40,7 @@ namespace Ontrack.Controllers
                     .Select(r => new StudentExamViewModel
                     {
                         StudentName = r.Student.FullName, // Assuming you have a FullName property
-                        Score =(double)r.Score,
+                        Score = (int)r.Score,
                         // Add other properties as needed
                     })
                     .ToListAsync();

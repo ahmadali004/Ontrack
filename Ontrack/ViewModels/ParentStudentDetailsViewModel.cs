@@ -12,7 +12,8 @@ namespace Ontrack.ViewModels
         public string ClassName { get; set; }
         public List<Attendance> AttendanceRecords { get; set; }
         public List<Payment> Payments { get; set; }
-        public List<StudentExamsResult> ExamResults { get; set; }
+       
+        public List<StudentExamResultViewModel> ExamResults { get; set; }
     }
 
     

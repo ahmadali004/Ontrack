@@ -6,17 +6,17 @@ using Ontrack.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+builder.Services.AddSession();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddSession();
 
 // Configure DbContexts
 builder.Services.AddDbContext<OntrackContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddDbContext<SchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Configure Identity
 builder.Services.AddDefaultIdentity<OntrackUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // Allow sign-in without email confirmation
@@ -66,49 +66,32 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure middleware
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseSession();
+// Core middleware setup
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-//app.MapGet("/", async context =>
-//{
-//    var user = context.User;
-//    if (user.Identity.IsAuthenticated)
-//    {
-//        context.Response.Redirect("/Parents/StudentDetails");
-//    }
-//    else
-//    {
-//        context.Response.Redirect("/Account/Login"); // Redirect to login page
-//    }
-//});
+app.UseSession(); // Add session middleware
+app.UseMiddleware<RoleRedirectMiddleware>(); // Custom role-based redirect middleware
 
+// Configure endpoints
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}");
+    endpoints.MapRazorPages();
 });
 
-
-
-// Default route
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"); // Change to a general home controller/action
-
-app.MapRazorPages();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.Run();
- 

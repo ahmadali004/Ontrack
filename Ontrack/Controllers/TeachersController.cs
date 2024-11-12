@@ -1,28 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Ontrack.Data;
 using Ontrack.Models;
+using Ontrack.ViewModels;
 
 namespace Ontrack.Controllers
 {
     public class TeachersController : Controller
     {
-        private readonly SchoolContext _context;
+         private readonly SchoolContext _schoolContext;
+    private readonly OntrackContext _ontrackContext;
 
-        public TeachersController(SchoolContext context)
-        {
-            _context = context;
-        }
+    public TeachersController(SchoolContext schoolContext, OntrackContext ontrackContext)
+    {
+        _schoolContext = schoolContext;
+        _ontrackContext = ontrackContext;
+    }
 
         // GET: Teachers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Teachers.ToListAsync());
+            return View(await _schoolContext.Teachers.ToListAsync());
         }
 
         // GET: Teachers/Details/5
@@ -33,7 +37,7 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers
+            var teacher = await _schoolContext.Teachers
                 .FirstOrDefaultAsync(m => m.TeacherID == id);
             if (teacher == null)
             {
@@ -58,8 +62,8 @@ namespace Ontrack.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(teacher);
-                await _context.SaveChangesAsync();
+                _schoolContext.Add(teacher);
+                await _schoolContext.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(teacher);
@@ -73,7 +77,7 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers.FindAsync(id);
+            var teacher = await _schoolContext.Teachers.FindAsync(id);
             if (teacher == null)
             {
                 return NotFound();
@@ -97,8 +101,8 @@ namespace Ontrack.Controllers
             {
                 try
                 {
-                    _context.Update(teacher);
-                    await _context.SaveChangesAsync();
+                    _schoolContext.Update(teacher);
+                    await _schoolContext.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -124,7 +128,7 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers
+            var teacher = await _schoolContext.Teachers
                 .FirstOrDefaultAsync(m => m.TeacherID == id);
             if (teacher == null)
             {
@@ -134,24 +138,80 @@ namespace Ontrack.Controllers
             return View(teacher);
         }
 
+
+        // GET: Teachers/LandingPage
+
+        public async Task<IActionResult> LandingPage()
+        {
+            // Get the currently logged-in teacher
+            var teacherEmail = User.Identity.Name;
+
+            var teacher = await _ontrackContext.Teachers
+                .Include(t => t.Classes)                          // Include Classes for the teacher
+                    .ThenInclude(c => c.Students)                  // Include Students for each class
+                .FirstOrDefaultAsync(t => t.Email == teacherEmail);
+
+            // Check if the teacher is found
+            if (teacher == null)
+            {
+                return NotFound();
+            }
+
+            // Now, separately fetch Attendances and StudentExamsResults for the students
+            foreach (var classItem in teacher.Classes)
+            {
+                foreach (var student in classItem.Students)
+                {
+                    // Fetch Attendance for the student
+                    student.Attendances = await _schoolContext.Attendance
+                        .Where(a => a.StudentID == student.StudentID)
+                        .ToListAsync();
+
+                    // Fetch StudentExamsResults for the student
+                    student.StudentExamsResult = await _schoolContext.StudentExamsResult
+                        .Where(se => se.StudentID == student.StudentID)
+                        .ToListAsync();
+                }
+            }
+
+            // Return the teacher's classes to the view
+            return View(teacher.Classes);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // POST: Teachers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var teacher = await _context.Teachers.FindAsync(id);
+            var teacher = await _schoolContext.Teachers.FindAsync(id);
             if (teacher != null)
             {
-                _context.Teachers.Remove(teacher);
+                _schoolContext.Teachers.Remove(teacher);
             }
 
-            await _context.SaveChangesAsync();
+            await _schoolContext.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool TeacherExists(int id)
         {
-            return _context.Teachers.Any(e => e.TeacherID == id);
+            return _schoolContext.Teachers.Any(e => e.TeacherID == id);
         }
     }
 }

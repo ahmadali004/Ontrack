@@ -20,6 +20,6 @@ public class OntrackUser : IdentityUser
 
     public string ? UserType { get; set; }
 
-    public virtual Parent Parent { get; set; }
+
 }
 

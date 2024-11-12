@@ -18,6 +18,8 @@ namespace Ontrack.Models
         [Required]
         [RegularExpression(@"^0\d{10}$", ErrorMessage = "Phone number must be exactly 11 digits and start with 0.")]
         public string  PhoneNumber { get; set; }
+        public virtual ICollection<Attendance> Attendances { get; set; }
+
 
         public int ClassID { get; set; }
         public Class ? Class { get; set; }

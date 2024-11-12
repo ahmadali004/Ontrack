@@ -9,10 +9,7 @@ namespace Ontrack.Data
 		{ }
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<Parent>()
-		.HasOne(p => p.User)
-		.WithOne(u => u.Parent)
-		.HasForeignKey<Parent>(p => p.UserId);
+			
 			modelBuilder.Entity<Teacher>()
 				.ToTable("Teachers")
 				.HasKey(t => t.TeacherID);

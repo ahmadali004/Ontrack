@@ -42,7 +42,33 @@
                 <td>@Html.DisplayFor(modelItem => student.DOB)</td>
                 <td>@Html.DisplayFor(modelItem => student.Class.ClassName)</td>
                 <td>@student.Parent?.FullName</td>
-                <td>@(student.IsPaid ? "Paid" : "Pending")</td>
+                
+                <td>
+                        @if (student.Payments != null && student.Payments.Any())
+                        {
+                            var currentMonthPayments = student.Payments
+                            .Where(payment => payment.PaymentDate.Month == DateTime.Now.Month &&
+                            payment.PaymentDate.Year == DateTime.Now.Year);
+
+                            if (currentMonthPayments.Any())
+                            {
+                                foreach (var payment in currentMonthPayments)
+                                {
+                                <li>Amount: @payment.Amount, Status: @payment.PaymentStatus</li>
+                                }
+                            }
+                            else
+                            {
+                            <li>No payments for this month</li>
+                            }
+                        }
+                        else
+                        {
+                        <li>No payments available</li>
+                        }
+                </td>
+
+                
                 <td>
                     <a asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-info">Details</a> |
                     <a asp-action="Edit" asp-route-id="@student.StudentID" class="btn btn-info">Edit</a> |

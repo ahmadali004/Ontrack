@@ -1,7 +1,8 @@
-﻿@model Ontrack.ViewModels.TeacherLandingPageViewModel
+﻿@model Ontrack.ViewModels.StudentDetailsViewModel
 
 @{
     ViewData["Title"] = "Teacher's Landing Page";
+    DateTime selectedMonthDate = DateTime.ParseExact(Model.SelectedMonth, "MM-yyyy", null);
 }
 
 <!DOCTYPE html>
@@ -21,11 +22,6 @@
             margin-top: 30px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
         .section-header {
             font-weight: bold;
             background-color: #007bff;
@@ -41,75 +37,103 @@
             margin-bottom: 20px;
             background-color: white;
         }
-
-        .tuition-status {
-            font-weight: bold;
-            color: #007bff;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Welcome, @Model.TeacherFullName</h2>
+        <h2>Welcome, @Model.ParentFullName</h2>
 
-        @foreach (var classModel in Model.Classes)
+        <!-- Month Selection Dropdown -->
+        <div class="mb-3">
+            <label for="monthSelect" class="form-label">Select Month:</label>
+            <form id="monthForm" method="get" action="/Parents/StudentDetails">
+                <select id="monthSelect" class="form-select" name="selectedMonth" onchange="document.getElementById('monthForm').submit();">
+                    @foreach (var month in Model.MonthOptions)
+                    {
+                        if (month.Value == Model.SelectedMonth)
+                        {
+                            <text>
+                            <option value="@month.Value" selected="selected">@month.Text</option>
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            <option value="@month.Value">@month.Text</option>
+                            </text>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+
+        @foreach (var student in Model.Students)
         {
             <div class="section mb-4">
-                <h3>Class: @classModel.ClassName</h3>
+                <h4>@student.FullName</h4>
 
-                @foreach (var student in classModel.Students)
-                {
-                    <div class="section mb-4">
-                        <h4>@student.FullName</h4>
-
-                        <!-- Attendance Section -->
-                        <div class="section mb-4">
-                            <div class="section-header">Attendance</div>
-                            <div class="section-content">
-                                <p>Attendance this month: @student.AttendanceRecords.Count</p>
-                            </div>
-                        </div>
-
-                        <!-- Payments Section -->
-                        <div class="section mb-4">
-                            <div class="section-header">Payments</div>
-                            <div class="section-content">
-                                <ul>
-                                    @foreach (var payment in student.Payments)
-                                    {
-                                        <li>Amount: @payment.Amount, Status: @payment.PaymentStatus</li>
-                                    }
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Exam Results Section -->
-                        <div class="section mb-4">
-                            <div class="section-header">Exam Results</div>
-                            <div class="section-content">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Exam Name</th>
-                                            <th>Exam Date</th>
-                                            <th>Score</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var result in student.ExamResults)
-                                        {
-                                            <tr>
-                                                <td>@result.ExamName</td>
-                                                <td>@result.ExamDate</td>
-                                                <td>@result.Score</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                <!-- Attendance Section -->
+                <div class="section mb-4">
+                    <div class="section-header">Attendance</div>
+                    <div class="section-content">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attendance in student.AttendanceRecords)
+                                {
+                                    <tr>
+                                        <td>@attendance.Date.ToString("dd-MM-yyyy")</td>
+                                        <td>@(attendance.IsPresent ? "Absent" : "Present")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
-                }
+                </div>
+
+                <!-- Payments Section -->
+                <div class="section mb-4">
+                    <div class="section-header">Payments</div>
+                    <div class="section-content">
+                        <ul>
+                            @foreach (var payment in student.Payments)
+                            {
+                                <li>Date: @payment.PaymentDate.ToString("dd-MM-yyyy"), Amount: @payment.Amount, Status: @payment.PaymentStatus</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Exam Results Section -->
+                <div class="section mb-4">
+                    <div class="section-header">Exam Results</div>
+                    <div class="section-content">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Exam Name</th>
+                                    <th>Exam Date</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var result in student.ExamResults)
+                                {
+                                    <tr>
+                                        <td>@result.ExamName</td>
+                                        <td>@result.ExamDate.ToString("dd-MM-yyyy")</td>
+                                        <td>@result.Score</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         }
     </div>

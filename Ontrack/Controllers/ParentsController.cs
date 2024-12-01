@@ -116,7 +116,7 @@ namespace Ontrack.Controllers
                     .Select(er => new StudentExamResultViewModel
                     {
                         ExamName = er.Examination?.ExamName ?? "N/A",
-                        ExamDate = er.Examination?.Date.ToString("yyyy-MM-dd") ?? "N/A",
+                        ExamDate = er.Examination.Date,
                         Score = (int?)er.Score ?? 0
                     })
                     .ToList() ?? new List<StudentExamResultViewModel>()
@@ -127,12 +127,13 @@ namespace Ontrack.Controllers
                 ParentFullName = parent.FullName ?? "Unknown Parent",
                 Students = studentDetails,
                 MonthOptions = GetMonthOptions(),
-                SelectedMonth = selectedMonth ?? DateTime.Now.Month,
-              
+                SelectedMonth = selectedMonth?.ToString("MM-yyyy") ?? DateTime.Now.ToString("MM-yyyy"), // Ensure format is "MM-yyyy"
+                SelectedYear = selectedYear ?? DateTime.Now.Year // Keep this as an int if your ViewModel requires it as an int
             };
 
             return View(viewModel);
         }
+
 
 
 
@@ -158,7 +159,7 @@ namespace Ontrack.Controllers
             var viewModel = new StudentExamViewModel
             {
                 StudentID = studentId,
-                StudentName = (await _context.Students.FindAsync(studentId))?.FullName,
+                StudentName = (await _context.Students.FindAsync(studentId)).FullName,
                 Exams = exams.Select(e => new SelectListItem
                 {
                     Value = e.ExaminationID.ToString(),
@@ -213,59 +214,81 @@ namespace Ontrack.Controllers
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         public async Task<IActionResult> Index()
-		{
-			if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
-			{
-				return RedirectToAction("Login", "Account");
-			}
+        {
+            var parents = await _context.Parents
+                .Include(p => p.Students)
+                .ToListAsync();
 
-			// Get the user ID of the logged-in parent
-			var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var viewModelList = parents.Select(parent => new SelectedParentViewModel
+            {
+                Parent = parent,
+                Students = parent.Students.Select(s => new StudentPaymentViewModel
+                {
+                    StudentID = s.StudentID,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    ClassName = s.Class?.ClassName ?? "N/A",
+                    PaymentAmount = CalculatePaymentAmountForStudent(s)
+                }).ToList()
+            }).ToList();
 
-			// Get the parent associated with the logged-in user
-			var parent = await _context.Parents
-				.Include(p => p.Students)
-				.FirstOrDefaultAsync(p => p.UserId == userId);
-
-			if (parent == null)
-			{
-				return NotFound("Parent not found.");
-			}
-
-			var viewModel = new SelectedParentViewModel
-			{
-				Parent = parent,
-				Students = parent.Students.Select(s => new StudentPaymentViewModel
-				{
-					StudentID = s.StudentID,
-					FirstName = s.FirstName,
-					LastName = s.LastName,
-					ClassName = s.Class?.ClassName ?? "N/A",
-					PaymentAmount = CalculatePaymentAmountForStudent(s)
-				}).ToList()
-			};
-
-			return View(viewModel);
-		}
+            return View(viewModelList);
+        }
 
 
-		// Calculate payment amount based on sibling count
-		private decimal CalculatePaymentAmountForStudent(Student student)
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //      public async Task<IActionResult> Index()
+        //{
+        //          //if (!User.Identity.IsAuthenticated || !User.IsInRole("Parent"))
+        //          //{
+        //          //	return RedirectToAction("Login", "Account");
+        //          //}
+
+        //          // Get the user ID of the logged-in parent
+        //          //var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //          // Get the parent associated with the logged-in user
+        //          var parent = await _context.Parents
+        //              .Include(p => p.Students)
+        //              .ToListAsync();
+
+        //          //if (parent == null)
+        //          //{
+        //          //    return NotFound("Parent not found.");
+        //          //}
+
+        //          var viewModel = new SelectedParentViewModel
+        //	{
+        //		Parent = parent,
+        //		Students = parent.Students.Select(s => new StudentPaymentViewModel
+        //		{
+        //			StudentID = s.StudentID,
+        //			FirstName = s.FirstName,
+        //			LastName = s.LastName,
+        //			ClassName = s.Class?.ClassName ?? "N/A",
+        //			PaymentAmount = CalculatePaymentAmountForStudent(s)
+        //		}).ToList()
+        //	};
+
+        //	return View(viewModel);
+        //}
+
+
+        // Calculate payment amount based on sibling count
+        private decimal CalculatePaymentAmountForStudent(Student student)
         {
             var siblingsCount = _context.Students.Count(s => s.ParentID == student.ParentID);
 
@@ -293,32 +316,29 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
-            var selectedParent = await _context.Parents
-                                               .Include(p => p.Students)
-                                               .ThenInclude(s => s.Class)
-                                               .FirstOrDefaultAsync(p => p.ParentID == ParentID);
+            var parents = await _context.Parents
+                                         .Include(p => p.Students)
+                                         .ThenInclude(s => s.Class)
+                                         .ToListAsync();
 
-            if (selectedParent == null)
+            var viewModel = parents.Select(parent => new SelectedParentViewModel
             {
-                return NotFound();
-            }
+                Parent = parent,
+                Students = parent.ParentID == ParentID
+                            ? parent.Students.Select(s => new StudentPaymentViewModel
+                            {
+                                StudentID = s.StudentID,
+                                FirstName = s.FirstName,
+                                LastName = s.LastName,
+                                ClassName = s.Class?.ClassName ?? "N/A",
+                                PaymentAmount = CalculatePaymentAmountForStudent(s)
+                            }).ToList()
+                            : new List<StudentPaymentViewModel>()
+            }).ToList();
 
-            var viewModel = new SelectedParentViewModel
-            {
-                Parent = selectedParent,
-                Students = selectedParent.Students.Select(s => new StudentPaymentViewModel
-                {
-                    StudentID = s.StudentID,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    ClassName = s.Class?.ClassName ?? "N/A",
-                    PaymentAmount = CalculatePaymentAmountForStudent(s)
-                }).ToList(),
-                Parents = await _context.Parents.ToListAsync()
-            };
-
-            return View("Index", viewModel); // Return SelectedParentViewModel
+            return View("Index", viewModel);
         }
+
 
         // Details - To show details for a specific parent
         public async Task<IActionResult> Details(int? id)

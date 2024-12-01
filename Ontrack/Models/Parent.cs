@@ -16,9 +16,9 @@ namespace Ontrack.Models
         public string FullName => $"{FirstName} {LastName}";
         public ICollection<Student> ? Students { get; set; }
         public ICollection<Payment> ? Payments { get; set; }
-		public string UserId { get; set; }
-		public virtual OntrackUser User { get; set; }
+        public string UserId { get; set; }
+        public virtual OntrackUser User { get; set; }
 
-	}
+    }
 
 }

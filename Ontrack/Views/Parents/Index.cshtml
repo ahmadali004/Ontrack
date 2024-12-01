@@ -1,4 +1,4 @@
-﻿@model Ontrack.ViewModels.SelectedParentViewModel
+﻿@* @model Ontrack.ViewModels.SelectedParentViewModel
 
 <h1 class="text-center">Parents</h1>
 
@@ -94,6 +94,206 @@
             </div>
         </div>
 
+    </div>
+    <p class="text-center">
+        <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
+    </p>
+}
+else
+{
+    <p class="text-center">No parents found.</p>
+}
+ *@
+
+@*  @model List<Ontrack.ViewModels.SelectedParentViewModel>
+
+<h1 class="text-center">Parents</h1>
+
+@using (Html.BeginForm("LoadChildren", "Parents", FormMethod.Post))
+{
+    <div class="form-group row justify-content-center">
+        <label for="searchString" class="col-form-label col-auto">Search:</label>
+        <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" id="searchString" name="searchString" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
+    </div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <table class="table table-bordered table-striped mx-auto">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Name</th>
+                            <th>Phone Number</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var parentViewModel in Model)
+                        {
+                            <tr>
+                                <td>@parentViewModel.Parent.FirstName @parentViewModel.Parent.LastName</td>
+                                <td>@parentViewModel.Parent.PhoneNumber</td>
+                                <td>@parentViewModel.Parent.Email</td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Edit</a> |
+                                    <a asp-action="Details" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Details</a> |
+                                    <a asp-action="Delete" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Delete</a> |
+
+                                    <!-- Show Children Button (Posts the ParentID to load children) -->
+                                    <form method="post" asp-action="LoadChildren" style="display:inline;">
+                                        <input type="hidden" name="ParentID" value="@parentViewModel.Parent.ParentID" />
+                                        <button type="submit" class="btn btn-info">Show Children</button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Display children if they exist for the current parent -->
+                            @if (parentViewModel.Students != null && parentViewModel.Students.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <h4>Children of @parentViewModel.Parent.FirstName @parentViewModel.Parent.LastName</h4>
+                                        <table class="table table-bordered mx-auto">
+                                            <thead>
+                                                <tr>
+                                                    <th>First Name</th>
+                                                    <th>Last Name</th>
+                                                    <th>Date of Birth</th>
+                                                    <th>Class</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var student in parentViewModel.Students)
+                                                {
+                                                    <tr>
+                                                        <td>@student.FirstName</td>
+                                                        <td>@student.LastName</td>
+                                                        <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                                        <td>@student.ClassName</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">No children found for this parent.</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <p class="text-center">
+        <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>
+    </p>
+}
+else
+{
+    <p class="text-center">No parents found.</p>
+}
+ *@
+
+ @model List<Ontrack.ViewModels.SelectedParentViewModel>
+
+<h1 class="text-center">Parents</h1>
+
+@using (Html.BeginForm("LoadChildren", "Parents", FormMethod.Post))
+{
+    <div class="form-group row justify-content-center">
+        <label for="searchString" class="col-form-label col-auto">Search:</label>
+        <div class="col-auto">
+            <input type="text" class="form-control form-control-sm" id="searchString" name="searchString" />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
+    </div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <table class="table table-bordered table-striped mx-auto">
+                    <thead>
+                        <tr class="text-center">
+                            <th>Name</th>
+                            <th>Phone Number</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var parentViewModel in Model)
+                        {
+                            <tr>
+                                <td>@parentViewModel.Parent.FirstName @parentViewModel.Parent.LastName</td>
+                                <td>@parentViewModel.Parent.PhoneNumber</td>
+                                <td>@parentViewModel.Parent.Email</td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Edit</a> |
+                                    <a asp-action="Details" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Details</a> |
+                                    <a asp-action="Delete" asp-route-id="@parentViewModel.Parent.ParentID" class="btn btn-info">Delete</a> |
+
+                                    <!-- Show Children Button (Posts the ParentID to load children) -->
+                                    <form method="post" asp-action="LoadChildren" style="display:inline;">
+                                        <input type="hidden" name="ParentID" value="@parentViewModel.Parent.ParentID" />
+                                        <button type="submit" class="btn btn-info">Show Children</button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Display children only if there are any for the current parent -->
+                            @if (parentViewModel.Students != null && parentViewModel.Students.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <h4>Children of @parentViewModel.Parent.FirstName @parentViewModel.Parent.LastName</h4>
+                                        <table class="table table-bordered mx-auto">
+                                            <thead>
+                                                <tr>
+                                                    <th>First Name</th>
+                                                    <th>Last Name</th>
+                                                    <th>Date of Birth</th>
+                                                    <th>Class</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var student in parentViewModel.Students)
+                                                {
+                                                    <tr>
+                                                        <td>@student.FirstName</td>
+                                                        <td>@student.LastName</td>
+                                                        <td>@student.DOB.ToString("yyyy-MM-dd")</td>
+                                                        <td>@student.ClassName</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     <p class="text-center">
         <a asp-action="Create" class="btn m-1 btn-primary">Create New</a>

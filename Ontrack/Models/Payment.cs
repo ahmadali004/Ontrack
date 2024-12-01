@@ -35,7 +35,9 @@ namespace Ontrack.Models
                 2 => 1500m,
                 3 => 1500m,
                 4 => 1300m,
-
+                5=>1300m,
+                6=>1300m,
+                _ => throw new NotImplementedException(),
             };
         }
 

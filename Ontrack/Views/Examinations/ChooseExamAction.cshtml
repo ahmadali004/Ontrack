@@ -1,5 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@using Ontrack.Areas.Identity.Data;
+@using Ontrack.Areas.Identity.Data
 @inject UserManager<OntrackUser> UserManager
 @{
     var isAdmin = User.IsInRole("Admin");
@@ -7,21 +7,26 @@
     var isParent = User.IsInRole("Parent");
 }
 
-<h2>Choose Exam Action</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-4" style="font-weight: bold; color: #0056b3;">Choose Exam Action</h2>
+    <p class="text-center text-muted">Select an action below to manage or view exams and results.</p>
 
-<div class="btn-group" role="group" aria-label="Exam actions">
-    <a asp-controller="StudentExamsResults" asp-action="Index" class="btn btn-info btn-lg">View Results</a>
-   
- 
+    <div class="d-flex justify-content-center mt-4">
+        <div class="btn-group" role="group" aria-label="Exam actions">
+            <a asp-controller="StudentExamsResults" asp-action="Index" class="btn btn-outline-info btn-lg me-2" style="font-weight: 500;">
+                View Results
+            </a>
 
-    <!-- Only show the Create Exam button if the user is an Admin or Teacher -->
-    @if (isAdmin || isTeacher)
-    {
-        <a asp-controller="Examinations" asp-action="Create" class="btn btn-primary">
-            Create Exam
-        </a>
-         <a asp-controller="Examinations" asp-action="Index" class="btn btn-secondary">
-            View Exam
-        </a>
-    }
+            <!-- Only show the Create Exam and View Exam buttons if the user is an Admin or Teacher -->
+            @if (isAdmin || isTeacher)
+            {
+                <a asp-controller="Examinations" asp-action="Create" class="btn btn-outline-primary btn-lg me-2" style="font-weight: 500;">
+                    Create Exam
+                </a>
+                <a asp-controller="Examinations" asp-action="Index" class="btn btn-outline-secondary btn-lg" style="font-weight: 500;">
+                    View Exam
+                </a>
+            }
+        </div>
+    </div>
 </div>

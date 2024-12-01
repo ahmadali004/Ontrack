@@ -7,14 +7,14 @@ namespace Ontrack.ViewModels
     {
         public string ParentFullName { get; set; }
         public List<StudentDetailViewModel> Students { get; set; }
-        public int? SelectedStudentID { get; set; } // For the selected student's ID
+        public int? SelectedStudentID { get; set; }
         public Student SelectedStudent { get; set; }
         public List<StudentDetailViewModel> ExamResults { get; set; }
-        public int SelectedMonth { get; set; }
+        public string SelectedMonth { get; set; }
         public string SelectedWeek { get; set; }
+        public int SelectedYear { get; set; }
         public List<SelectListItem> MonthOptions { get; set; }
         public List<StudentDetailViewModel> StudentDetails { get; internal set; }
-
-     
     }
+
 }

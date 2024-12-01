@@ -36,7 +36,7 @@ namespace Ontrack.Controllers
                                              || s.Class.ClassName.Contains(searchString));
             }
 
-            return View(await students.Include(s => s.Class).Include(s => s.Parent).AsNoTracking().ToListAsync());
+            return View(await students.Include(s => s.Class).Include(s => s.Parent).Include(s => s.Payments).AsNoTracking().ToListAsync());
         }
 
 

@@ -16,8 +16,14 @@ namespace Ontrack.Data
 			modelBuilder.Entity<Teacher>()
 				.Property(t => t.TeacherID)
 				.ValueGeneratedOnAdd();
+            modelBuilder.Entity<Teacher>()
+    .HasOne(t => t.User)
+    .WithMany() // No inverse relationship
+    .HasForeignKey(t => t.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
 
-			modelBuilder.Entity<Parent>()
+
+            modelBuilder.Entity<Parent>()
 				.ToTable("Parents")
 				.HasKey(p => p.ParentID);
 			modelBuilder.Entity<Parent>()
@@ -28,7 +34,7 @@ namespace Ontrack.Data
 				.HasOne(s => s.Parent)
 				.WithMany(p => p.Students)
 				.HasForeignKey(s => s.ParentID)
-				.OnDelete(DeleteBehavior.Restrict); 
+				.OnDelete(DeleteBehavior.Cascade); 
 
 			modelBuilder.Entity<Class>()
 				.ToTable("Classes")
@@ -47,19 +53,19 @@ namespace Ontrack.Data
 				.HasOne(e => e.Class)
 				.WithMany(c => c.Examinations)
 				.HasForeignKey(e => e.ClassID)
-				.OnDelete(DeleteBehavior.Restrict); 
+				.OnDelete(DeleteBehavior.Cascade); 
 
             modelBuilder.Entity<Payment>()
          .HasOne(p => p.Parent)
          .WithMany(p => p.Payments)
          .HasForeignKey(p => p.ParentID)
-         .OnDelete(DeleteBehavior.Restrict);
+         .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
        .HasOne(p => p.Student)
        .WithMany(s => s.Payments)
        .HasForeignKey(p => p.StudentID)
-       .OnDelete(DeleteBehavior.Restrict);
+       .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ClassTeacher>()
 				.HasOne(ct => ct.Teacher)
@@ -77,12 +83,12 @@ namespace Ontrack.Data
 				.HasOne(er => er.Student)
 				.WithMany(s => s.StudentExamsResult)
 				.HasForeignKey(er => er.StudentID)
-				.OnDelete(DeleteBehavior.Restrict); 
+				.OnDelete(DeleteBehavior.Cascade); 
 			modelBuilder.Entity<StudentExamsResult>()
 				.HasOne(er => er.Examination)
 				.WithMany(e => e.StudentExamsResult)
 				.HasForeignKey(er => er.ExaminationID)
-				.OnDelete(DeleteBehavior.Restrict); 
+				.OnDelete(DeleteBehavior.Cascade); 
 			
 			base.OnModelCreating(modelBuilder);
 		}

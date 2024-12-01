@@ -33,7 +33,7 @@ namespace Ontrack.ViewModels
         public string StudentName { get; set; }  // Assuming you want to show student names
         public int Score { get; set; }           // The score of the student
         public string ExamName { get; set; }
-        public string ExamDate { get; set; }
+        public DateTime ExamDate { get; set; }
 
         public Examination Examination { get; internal set; }
         public StudentExamsResult StudentExamsResult { get; internal set; }

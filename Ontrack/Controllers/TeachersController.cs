@@ -141,14 +141,20 @@ namespace Ontrack.Controllers
 
         // GET: Teachers/LandingPage
 
-        public async Task<IActionResult> LandingPage()
+        public async Task<IActionResult> LandingPage(string selectedMonth)
         {
             // Get the currently logged-in teacher
             var teacherEmail = User.Identity.Name;
 
+            // Retrieve the teacher along with their classes, students, attendance, and exam results
             var teacher = await _ontrackContext.Teachers
-                .Include(t => t.Classes)                          // Include Classes for the teacher
-                    .ThenInclude(c => c.Students)                  // Include Students for each class
+                .Include(t => t.Classes)
+                    .ThenInclude(c => c.Students)
+                        .ThenInclude(s => s.Attendances)
+                .Include(t => t.Classes)
+                    .ThenInclude(c => c.Students)
+                        .ThenInclude(s => s.StudentExamsResult)
+                            .ThenInclude(se => se.Examination)
                 .FirstOrDefaultAsync(t => t.Email == teacherEmail);
 
             // Check if the teacher is found
@@ -157,26 +163,36 @@ namespace Ontrack.Controllers
                 return NotFound();
             }
 
-            // Now, separately fetch Attendances and StudentExamsResults for the students
-            foreach (var classItem in teacher.Classes)
-            {
-                foreach (var student in classItem.Students)
-                {
-                    // Fetch Attendance for the student
-                    student.Attendances = await _schoolContext.Attendance
-                        .Where(a => a.StudentID == student.StudentID)
-                        .ToListAsync();
+            // Parse the selected month for filtering
+            DateTime monthDate;
+            bool isValidMonth = DateTime.TryParseExact(selectedMonth, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out monthDate);
 
-                    // Fetch StudentExamsResults for the student
-                    student.StudentExamsResult = await _schoolContext.StudentExamsResult
-                        .Where(se => se.StudentID == student.StudentID)
-                        .ToListAsync();
+            // Filter attendance and exam results for the selected month if valid
+            if (isValidMonth)
+            {
+                foreach (var classItem in teacher.Classes)
+                {
+                    foreach (var student in classItem.Students)
+                    {
+                        // Filter attendances by the selected month
+                        student.Attendances = student.Attendances
+                            .Where(a => a.Date.Year == monthDate.Year && a.Date.Month == monthDate.Month)
+                            .ToList();
+
+                        // Filter exam results by the selected month
+                        student.StudentExamsResult = student.StudentExamsResult
+                            .Where(se => se.Examination.Date.Year == monthDate.Year && se.Examination.Date.Month == monthDate.Month)
+                            .ToList();
+                    }
                 }
             }
 
-            // Return the teacher's classes to the view
+            // Pass the teacher's classes and selected month to the view
+            ViewData["SelectedMonth"] = selectedMonth;
             return View(teacher.Classes);
         }
+
+
 
 
 
